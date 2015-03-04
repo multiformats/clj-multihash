@@ -9,7 +9,7 @@
 
 ;; ## Hash Function Algorithms
 
-(def ^:const digest-algorithms
+(def ^:const algorithms
   "Map of content hashing algorithms to system names and byte encodings."
   {:sha1     {:code 0x11, :length 20, :system "SHA-1"}
    :sha2-256 {:code 0x12, :length 32, :system "SHA-256"}
@@ -25,46 +25,24 @@
   (< 0 code 0x10))
 
 
-(defn- lookup-algo
-  "Look up algorithm details by code number."
-  [code]
-  (some #(when (= code (:code (val %)))
-           (assoc (val %) :name (key %)))
-        digest-algorithms))
-
-
-(defn- code->name
-  "Return a keyword corresponding to the given algorithm code."
-  [code]
-  (if (app-code? code)
-    (keyword (str "app-" code))
-    (:name (lookup-algo code))))
-
-
-(defn coerce-code
-  "Coerces the argument to a numeric algorithm code."
+(defn get-algorithm
+  "Looks up an algorithm by keyword name or code number. Returns `nil` if the
+  value does not map to any valid algorithm."
   [value]
   (cond
     (keyword? value)
-    (or (:code (digest-algorithms value))
-        (throw (IllegalArgumentException.
-                 (str "Keyword " value
-                      " does not name a supported digest algorithm."))))
+    (get algorithms value)
 
     (not (integer? value))
-    (throw (IllegalArgumentException.
-             (str "Code value " (pr-str value)
-                  " is not a keyword or integer.")))
+    nil
 
     (app-code? value)
-    value
+    {:code value, :name (keyword (str "app-" value))}
 
     :else
-    (if-let [algo (lookup-algo value)]
-      (:code value)
-      (throw (IllegalArgumentException.
-               (str "Code value " value
-                    " does not represent a valid digest algorithm."))))))
+    (some #(when (= value (:code (val %)))
+             (assoc (val %) :name (key %)))
+          algorithms)))
 
 
 
@@ -116,8 +94,8 @@
 
 ;; Multihash identifiers have two properties:
 ;;
-;; - `:code` is a numeric code for an algorithm entry in `digest-algorithms` or
-;;   an application-specific algorithm code.
+;; - `:code` is a numeric code for an algorithm entry in `algorithms` or an
+;;   application-specific algorithm code.
 ;; - `:digest` is a string holding the hex-encoded algorithm output.
 (deftype Multihash
   [^long code ^String digest _meta]
@@ -125,7 +103,7 @@
   Object
 
   (toString [this]
-    (str "hash:" (code->name code) \: digest))
+    (str "hash:" (name (:name (get-algorithm code))) \: digest))
 
   (equals [this that]
     (cond
@@ -154,7 +132,7 @@
   (valAt [this k not-found]
     (case k
       :code code
-      :algorithm (code->name code)
+      :algorithm (:name (get-algorithm code))
       :length (/ (count digest) 2)
       :digest digest
       :bytes (hex->bytes digest)
@@ -183,11 +161,22 @@
   code or a keyword name as the first argument. The digest may either by a byte
   array or a hex string."
   [algorithm digest]
-  (let [code (coerce-code algorithm)
+  (let [code (:code (get-algorithm algorithm))
         digest (if (string? digest)
                  (bytes->hex (hex->bytes digest))
-                 (bytes->hex digest))]
-    ; TODO: check length
+                 (bytes->hex digest))
+        length (/ (count digest) 2)]
+    (when-not (integer? code)
+      (throw (IllegalArgumentException.
+               (str "Algorithm argument " (pr-str algorithm) " does not "
+                    "represent a valid hash algorithm."))))
+    (when (< length 1)
+      (throw (IllegalArgumentException.
+               (str "Digest must contain at least one byte"))))
+    (when (> length 127)
+      (throw (IllegalArgumentException.
+               (str "Digest exceeds maximum supported length of 127: "
+                    length))))
     (Multihash. code digest nil)))
 
 
@@ -210,7 +199,7 @@
   "Calculates the digest of the given byte array and returns a `Multihash`."
   [algorithm ^bytes content]
   #_
-  (let [hex-digest (-> (digest-algorithms algorithm)
+  (let [hex-digest (-> (algorithms algorithm)
                        MessageDigest/getInstance
                        (.digest content)
                        bytes->hex)]
