@@ -7,6 +7,8 @@
     java.security.MessageDigest))
 
 
+;; ## Hash Function Algorithms
+
 (def ^:const digest-algorithms
   "Map of content hashing algorithms to system names and byte encodings."
   {:sha1     {:code 0x11, :length 20, :system "SHA-1"}
@@ -21,6 +23,48 @@
   "True if the given code number is assigned to the application-specfic range."
   [code]
   (< 0 code 0x10))
+
+
+(defn- lookup-algo
+  "Look up algorithm details by code number."
+  [code]
+  (some #(when (= code (:code (val %)))
+           (assoc (val %) :name (key %)))
+        digest-algorithms))
+
+
+(defn- code->name
+  "Return a keyword corresponding to the given algorithm code."
+  [code]
+  (if (app-code? code)
+    (keyword (str "app-" code))
+    (:name (lookup-algo code))))
+
+
+(defn coerce-code
+  "Coerces the argument to a numeric algorithm code."
+  [value]
+  (cond
+    (keyword? value)
+    (or (:code (digest-algorithms value))
+        (throw (IllegalArgumentException.
+                 (str "Keyword " value
+                      " does not name a supported digest algorithm."))))
+
+    (not (integer? value))
+    (throw (IllegalArgumentException.
+             (str "Code value " (pr-str value)
+                  " is not a keyword or integer.")))
+
+    (app-code? value)
+    value
+
+    :else
+    (if-let [algo (lookup-algo value)]
+      (:code value)
+      (throw (IllegalArgumentException.
+               (str "Code value " value
+                    " does not represent a valid digest algorithm."))))))
 
 
 
@@ -65,22 +109,6 @@
       (let [data' (byte-array width)]
         (System/arraycopy data 0 data' 0 (count data))
         data'))))
-
-
-(defn- lookup-algo
-  "Look up algorithm details by code number."
-  [code]
-  (some #(when (= code (:code (val %)))
-           (assoc (val %) :name (key %)))
-        digest-algorithms))
-
-
-(defn- code->name
-  "Return a keyword corresponding to the given algorithm code."
-  [code]
-  (if (app-code? code)
-    (keyword (str "app-" code))
-    (:name (lookup-algo code))))
 
 
 
