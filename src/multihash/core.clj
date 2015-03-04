@@ -153,7 +153,8 @@
     (Multihash. code digest m)))
 
 
-; TODO: unset ->Multihash
+;; Remove automatic constructor function.
+(ns-unmap *ns* '->Multihash)
 
 
 (defn create
