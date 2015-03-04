@@ -31,7 +31,8 @@
   [value]
   (cond
     (keyword? value)
-    (get algorithms value)
+    (when-let [data (get algorithms value)]
+      (assoc data :name value))
 
     (not (integer? value))
     nil

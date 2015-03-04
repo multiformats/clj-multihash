@@ -14,6 +14,22 @@
         (str "Algorithm code " code " is not app-specific"))))
 
 
+(deftest get-algorithms
+  (is (nil? (multihash/get-algorithm 0)))
+  (is (nil? (multihash/get-algorithm 0x100)))
+  (is (nil? (multihash/get-algorithm :foo/bar)))
+  (doseq [code (range 0x01 0x10)]
+    (let [algorithm (multihash/get-algorithm code)]
+      (is (= code (:code algorithm)))
+      (is (keyword? (:name algorithm)))))
+  (doseq [[algorithm data] multihash/algorithms]
+    (let [by-name (multihash/get-algorithm algorithm)
+          by-code (multihash/get-algorithm (:code data))]
+      (is (= algorithm (:name by-name)))
+      (is (= (:code data) (:code by-code)))
+      (is (= by-name by-code)))))
+
+
 (def examples
   "Test case examples."
   {"11140beec7b5ea3f0fdbc95d0dd47f3c5bc275da8a33"
