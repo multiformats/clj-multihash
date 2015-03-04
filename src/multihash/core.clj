@@ -175,9 +175,34 @@
     (Multihash. code digest m)))
 
 
-; TODO: constructor
-; TODO: encode
-; TODO: decode
+; TODO: unset ->Multihash
+
+
+(defn create
+  "Constructs a new Multihash identifier. Accepts either a numeric algorithm
+  code or a keyword name as the first argument. The digest may either by a byte
+  array or a hex string."
+  [algorithm digest]
+  (let [code (coerce-code algorithm)
+        digest (if (string? digest)
+                 (bytes->hex (hex->bytes digest))
+                 (bytes->hex digest))]
+    ; TODO: check length
+    (Multihash. code digest nil)))
+
+
+(defn encode
+  "Encodes a multihash into a binary representation."
+  [mhash]
+  ; TODO: encode
+  )
+
+
+(defn decode
+  "Decodes a hex string or byte array into a multihash value."
+  [encoded]
+  ; TODO: decode
+  )
 
 
 ; TODO: multimethod?
