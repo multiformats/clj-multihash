@@ -187,15 +187,39 @@
 (defn encode
   "Encodes a multihash into a binary representation."
   [mhash]
-  ; TODO: encode
-  )
+  (let [length (:length mhash)
+        encoded (byte-array (+ length 2))]
+    (aset encoded 0 (byte (:code mhash)))
+    (aset encoded 1 (byte length))
+    (System/arraycopy (:bytes mhash) 0 encoded 2 length)
+    encoded))
+
+
+(defn encode-hex
+  "Encodes a multihash into a hexadecimal string."
+  [mhash]
+  (bytes->hex (encode mhash)))
 
 
 (defn decode
   "Decodes a hex string or byte array into a multihash value."
   [encoded]
-  ; TODO: decode
-  )
+  (let [encoded (if (string? encoded)
+                  (hex->bytes encoded)
+                  encoded)
+        code (aget encoded 0)
+        length (aget encoded 1)
+        payload-length (- (alength encoded) 2)]
+    (when (not= length payload-length)
+      (throw (IllegalArgumentException.
+               (str "Encoded digest length " length " does not match actual "
+                    "digest payload of " payload-length " bytes"))))
+    (let [digest (byte-array length)]
+      (System/arraycopy encoded 2 digest 0 length)
+      (create code digest))))
+
+
+; TODO: (read! InputStream)
 
 
 ; TODO: multimethod?

@@ -69,20 +69,22 @@
    "12042c26b46b"
    [0x12 :sha2-256 4 "2c26b46b"]
 
-   "40042c26b46b"
-   [0x40 :blake2b 4 "2c26b46b"]})
+   "40040006b46b"
+   [0x40 :blake2b 4 "0006b46b"]})
 
 
-(deftest example-decoding
-  (doseq [[encoded [code algorithm length digest]] examples]
-    (let [mhash (multihash/decode encoded)]
-      (is (= code (:code mhash)))
-      (is (= algorithm (:algorithm mhash)))
-      (is (= length (:length mhash)))
-      (is (= digest (:digest mhash))))))
-
-
-(deftest example-encoding
-  (doseq [[encoded [code algorithm length digest]] examples]
-    (let [mhash (multihash/create algorithm digest)]
-      (is (= encoded (multihash/encode mhash))))))
+(deftest example-coding
+  (testing "Encoding is reflexive"
+    (let [mhash (multihash/create 0x02 "0beec7b8")]
+      (is (= mhash (multihash/decode (multihash/encode mhash))))))
+  (testing "Encoded multihashes match expected hex"
+    (doseq [[encoded [code algorithm length digest]] examples]
+      (let [mhash (multihash/create algorithm digest)]
+        (is (= encoded (multihash/encode-hex mhash))))))
+  (testing "Decoding examples gives expected properties"
+    (doseq [[encoded [code algorithm length digest]] examples]
+      (let [mhash (multihash/decode encoded)]
+        (is (= code (:code mhash)))
+        (is (= algorithm (:algorithm mhash)))
+        (is (= length (:length mhash)))
+        (is (= digest (:digest mhash)))))))
