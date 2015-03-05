@@ -52,6 +52,19 @@
       "Odd digest length should be rejected"))
 
 
+(deftest hashing-constructors
+  (let [content (.getBytes "foo bar baz")
+        mh1 (multihash/sha1 content)
+        mh2 (multihash/sha2-256 content)
+        mh3 (multihash/sha2-512 content)]
+    (is (= :sha1 (:algorithm mh1)))
+    (is (= :sha2-256 (:algorithm mh2)))
+    (is (= :sha2-512 (:algorithm mh3)))
+    (is (not= (:digest mh1) (:digest mh2)))
+    (is (not= (:digest mh1) (:digest mh3)))
+    (is (not= (:digest mh2) (:digest mh3)))))
+
+
 (deftest value-semantics
   (let [a (multihash/create 0x11 "0beec7b8")
         b (multihash/create 0x11 "94a1be0c")

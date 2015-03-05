@@ -47,7 +47,7 @@
 
 
 
-;; ## Utilities
+;; ## Utility Functions
 
 (defn- zero-pad-str
   "Pads a string with leading zeroes up to the given width."
@@ -66,7 +66,7 @@
   "Pads a byte array with leading zeroes (or trims them) to ensure it has the
   given length. Returns the same array if the length is already correct, or a
   new resized array if not."
-  [width array]
+  [width ^bytes array]
   (let [array-length (alength array)]
     (if (= width array-length)
       array
@@ -189,6 +189,9 @@
     (Multihash. code digest m)))
 
 
+
+;; ## Constructors
+
 ;; Remove automatic constructor function.
 (ns-unmap *ns* '->Multihash)
 
@@ -205,9 +208,29 @@
                     "represent a valid hash algorithm."))))
     (let [digest (if (string? digest) digest (bytes->hex digest))]
       (when-let [err (validate-digest digest)]
-        (throw (IllegalArgumentException. err)))
+        (throw (IllegalArgumentException. ^String err)))
       (Multihash. code digest nil))))
 
+
+(defmacro ^:private defhash
+  "Defines a new convenience hashing function for the given algorithm and system
+  digest name."
+  [algorithm digest-name]
+  `(defn ~(symbol (name algorithm))
+     ~(str "Calculates the " digest-name " digest of the given byte array and "
+           "returns a multihash.")
+     [~(vary-meta 'content assoc :tag 'bytes)]
+     (let [algo# (MessageDigest/getInstance ~digest-name)]
+       (create ~algorithm (.digest algo# ~'content)))))
+
+
+(defhash :sha1     "SHA-1")
+(defhash :sha2-256 "SHA-256")
+(defhash :sha2-512 "SHA-512")
+
+
+
+;; ## Encoding and Decoding
 
 (defn encode
   "Encodes a multihash into a binary representation."
@@ -229,9 +252,9 @@
 (defn decode
   "Decodes a hex string or byte array into a multihash value."
   [encoded]
-  (let [encoded (if (string? encoded)
-                  (hex->bytes encoded)
-                  encoded)
+  (let [^bytes encoded (if (string? encoded)
+                         (hex->bytes encoded)
+                         encoded)
         code (aget encoded 0)
         length (aget encoded 1)
         payload-length (- (alength encoded) 2)]
@@ -245,15 +268,3 @@
 
 
 ; TODO: (read! InputStream)
-
-
-; TODO: multimethod?
-(defn hash
-  "Calculates the digest of the given byte array and returns a `Multihash`."
-  [algorithm ^bytes content]
-  #_
-  (let [hex-digest (-> (algorithms algorithm)
-                       MessageDigest/getInstance
-                       (.digest content)
-                       bytes->hex)]
-    (Multihash. algorithm hex-digest nil)))
