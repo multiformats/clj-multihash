@@ -65,11 +65,12 @@
 (defn- bytes->hex
   "Converts a byte array into a lowercase hexadecimal string."
   [^bytes value]
-  (let [width (* 2 (count value))
-        hex (-> (BigInteger. 1 value)
-                (.toString 16)
-                str/lower-case)]
-    (zero-pad width hex)))
+  (when (and value (pos? (alength value)))
+    (let [width (* 2 (alength value))
+          hex (-> (BigInteger. 1 value)
+                  (.toString 16)
+                  str/lower-case)]
+      (zero-pad width hex))))
 
 
 (defn- hex->bytes
@@ -77,17 +78,18 @@
   array is zero-padded to match the hex string length."
   ^bytes
   [^String value]
-  (when (odd? (count value))
-    (throw (IllegalArgumentException.
-             (str "Input string '" value "' is not valid hex: number of "
-                  "characters (" (count value) ") is odd"))))
-  (let [width (/ (count value) 2)
-        data (.toByteArray (BigInteger. value 16))]
-    (if (= width (count data))
-      data
-      (let [data' (byte-array width)]
-        (System/arraycopy data 0 data' 0 (count data))
-        data'))))
+  (when (and value (not (empty? value)))
+    (when (odd? (count value))
+      (throw (IllegalArgumentException.
+               (str "Input string '" value "' is not valid hex: number of "
+                    "characters (" (count value) ") is odd"))))
+    (let [width (/ (count value) 2)
+          data (.toByteArray (BigInteger. value 16))]
+      (if (= width (alength data))
+        data
+        (let [data' (byte-array width)]
+          (System/arraycopy data 0 data' (- width (alength data)) (alength data))
+          data')))))
 
 
 
