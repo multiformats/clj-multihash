@@ -83,13 +83,20 @@
       (throw (IllegalArgumentException.
                (str "Input string '" value "' is not valid hex: number of "
                     "characters (" (count value) ") is odd"))))
-    (let [width (/ (count value) 2)
-          data (.toByteArray (BigInteger. value 16))]
-      (if (= width (alength data))
-        data
-        (let [data' (byte-array width)]
-          (System/arraycopy data 0 data' (- width (alength data)) (alength data))
-          data')))))
+    (when-not (re-matches #"^[0-9a-fA-F]+$" value)
+      (throw (IllegalArgumentException.
+               (str "Input string '" value "' is not valid hex: "
+                    "contains illegal characters"))))
+    (let [length (/ (count value) 2)
+          int-bytes (.toByteArray (BigInteger. value 16))
+          int-length (alength int-bytes)]
+      (if (= length int-length)
+        int-bytes
+        (let [data (byte-array length)]
+          (if (< int-length length)
+            (System/arraycopy int-bytes 0 data (- length int-length) int-length)
+            (System/arraycopy int-bytes (- int-length length) data 0 length))
+          data)))))
 
 
 
