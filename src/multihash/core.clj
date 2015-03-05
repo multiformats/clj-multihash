@@ -49,7 +49,7 @@
 
 ;; ## Utilities
 
-(defn- zero-pad
+(defn- zero-pad-str
   "Pads a string with leading zeroes up to the given width."
   [width value]
   (let [string (str value)]
@@ -62,6 +62,21 @@
           (str string)))))
 
 
+(defn- zero-pad-bytes
+  "Pads a byte array with leading zeroes (or trims them) to ensure it has the
+  given length. Returns the same array if the length is already correct, or a
+  new resized array if not."
+  [width array]
+  (let [array-length (alength array)]
+    (if (= width array-length)
+      array
+      (let [array' (byte-array width)]
+        (if (< array-length width)
+          (System/arraycopy array 0 array' (- width array-length) array-length)
+          (System/arraycopy array (- array-length width) array' 0 width))
+        array'))))
+
+
 (defn- bytes->hex
   "Converts a byte array into a lowercase hexadecimal string."
   [^bytes value]
@@ -70,7 +85,7 @@
           hex (-> (BigInteger. 1 value)
                   (.toString 16)
                   str/lower-case)]
-      (zero-pad width hex))))
+      (zero-pad-str width hex))))
 
 
 (defn- hex->bytes
@@ -79,24 +94,35 @@
   ^bytes
   [^String value]
   (when (and value (not (empty? value)))
-    (when (odd? (count value))
-      (throw (IllegalArgumentException.
-               (str "Input string '" value "' is not valid hex: number of "
-                    "characters (" (count value) ") is odd"))))
-    (when-not (re-matches #"^[0-9a-fA-F]+$" value)
-      (throw (IllegalArgumentException.
-               (str "Input string '" value "' is not valid hex: "
-                    "contains illegal characters"))))
     (let [length (/ (count value) 2)
-          int-bytes (.toByteArray (BigInteger. value 16))
-          int-length (alength int-bytes)]
-      (if (= length int-length)
-        int-bytes
-        (let [data (byte-array length)]
-          (if (< int-length length)
-            (System/arraycopy int-bytes 0 data (- length int-length) int-length)
-            (System/arraycopy int-bytes (- int-length length) data 0 length))
-          data)))))
+          int-bytes (.toByteArray (BigInteger. value 16))]
+      (zero-pad-bytes length int-bytes))))
+
+
+(defn- validate-digest
+  "Checks a string to determine whether it's well-formed hexadecimal digest.
+  Returns an error message if the argument is invalid."
+  [digest]
+  (let [length (count digest)]
+    (cond
+      (not (string? digest))
+      (str "Value is not a string: " (pr-str digest))
+
+      (odd? length)
+      (str "String '" digest "' is not a valid digest: "
+           "number of characters (" length ") is odd")
+
+      (not (re-matches #"^[0-9a-fA-F]+$" digest))
+      (str "String '" digest "' is not a valid digest: "
+           "contains illegal characters")
+
+      (< length 2)
+      (str "Digest must contain at least one byte")
+
+      (> length 254)
+      (str "Digest exceeds maximum supported length of 127: " (/ length 2))
+
+      :else nil)))
 
 
 
@@ -172,23 +198,15 @@
   code or a keyword name as the first argument. The digest may either by a byte
   array or a hex string."
   [algorithm digest]
-  (let [code (:code (get-algorithm algorithm))
-        digest (if (string? digest)
-                 (bytes->hex (hex->bytes digest))
-                 (bytes->hex digest))
-        length (/ (count digest) 2)]
+  (let [code (:code (get-algorithm algorithm))]
     (when-not (integer? code)
       (throw (IllegalArgumentException.
-               (str "Algorithm argument " (pr-str algorithm) " does not "
+               (str "Argument " (pr-str algorithm) " does not "
                     "represent a valid hash algorithm."))))
-    (when (< length 1)
-      (throw (IllegalArgumentException.
-               (str "Digest must contain at least one byte"))))
-    (when (> length 127)
-      (throw (IllegalArgumentException.
-               (str "Digest exceeds maximum supported length of 127: "
-                    length))))
-    (Multihash. code digest nil)))
+    (let [digest (if (string? digest) digest (bytes->hex digest))]
+      (when-let [err (validate-digest digest)]
+        (throw (IllegalArgumentException. err)))
+      (Multihash. code digest nil))))
 
 
 (defn encode

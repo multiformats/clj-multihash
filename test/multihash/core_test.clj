@@ -52,7 +52,25 @@
       "Odd digest length should be rejected"))
 
 
-; TODO: comparison/sorting
+(deftest value-semantics
+  (let [a (multihash/create 0x11 "0beec7b8")
+        b (multihash/create 0x11 "94a1be0c")
+        c (multihash/create 0x12 "00a8b94e")
+        c' (multihash/create 0x12 "00a8b94e")]
+    (is (= a a) "Identical values are equal")
+    (is (= c c') "Values with same code and digest are equal")
+    (is (integer? (hash b)) "Hash code returns an integer")
+    (is (= (hash c) (hash c')) "Equivalent objects return same hashcode")
+    (is (= [a b c] (sort [c b a])) "Multihashes sort in code/digest order")))
+
+
+; TODO: toString and print-method
+(deftest multihash-rendering
+  (is (= "hash:sha1:0beec7b5ea3f0fdbc95d0dd47f3c5bc275da8a33"
+         (str (multihash/create :sha1 "0beec7b5ea3f0fdbc95d0dd47f3c5bc275da8a33")))))
+
+
+; TODO: exercise metadata
 
 
 (def examples
