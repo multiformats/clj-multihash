@@ -1,5 +1,6 @@
 (ns multihash.core-test
   (:require
+    [clojure.string :as str]
     [clojure.test :refer :all]
     [multihash.core :as multihash]))
 
@@ -28,6 +29,30 @@
       (is (= algorithm (:name by-name)))
       (is (= (:code data) (:code by-code)))
       (is (= by-name by-code)))))
+
+
+(deftest constructor-validation
+  (is (thrown? IllegalArgumentException
+               (multihash/create :no-such-algo "0beec7b8"))
+      "Unknown algorith keyword should be rejected")
+  (is (thrown? IllegalArgumentException
+               (multihash/create 0x2F "0beec7b8"))
+      "Unknown numeric code should be rejected")
+  (is (thrown? IllegalArgumentException
+               (multihash/create :sha1 nil))
+      "Nil digest should be rejected")
+  (is (thrown? IllegalArgumentException
+               (multihash/create :sha1 ""))
+      "Empty digest should be rejected")
+  (is (thrown? IllegalArgumentException
+               (multihash/create :sha1 (byte-array 128)))
+      "Digest length should be limited to 127")
+  (is (thrown? IllegalArgumentException
+               (multihash/create :sha1 "012"))
+      "Odd digest length should be rejected"))
+
+
+; TODO: comparison/sorting
 
 
 (def examples
