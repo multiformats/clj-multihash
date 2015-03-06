@@ -2,7 +2,9 @@ clj-multihash
 =============
 
 [![Build Status](https://travis-ci.org/greglook/clj-multihash.svg?branch=develop)](https://travis-ci.org/greglook/clj-multihash)
-[![Coverage Status](https://coveralls.io/repos/greglook/clj-multihash/badge.svg)](https://coveralls.io/r/greglook/clj-multihash)
+[![Coverage Status](https://coveralls.io/repos/greglook/clj-multihash/badge.svg?branch=develop)](https://coveralls.io/r/greglook/clj-multihash?branch=develop)
+[![API codox](http://b.repl.ca/v1/doc-API-blue.png)](https://greglook.github.io/clj-multihash/api/multihash.core.html)
+[![marginalia docs](http://b.repl.ca/v1/doc-marginalia-blue.png)](https://greglook.github.io/clj-multihash/marginalia/uberdoc.html)
 
 A Clojure library implementing the
 [multihash](https://github.com/jbenet/multihash) standard. This provides an
