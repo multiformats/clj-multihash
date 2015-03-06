@@ -1,6 +1,5 @@
 (ns multihash.core
   "Core multihash type definition and helper methods."
-  (:refer-clojure :exclude [hash])
   (:require
     [clojure.string :as str])
   (:import
@@ -10,10 +9,10 @@
 ;; ## Hash Function Algorithms
 
 (def ^:const algorithms
-  "Map of content hashing algorithms to system names and byte encodings."
-  {:sha1     {:code 0x11, :length 20, :system "SHA-1"}
-   :sha2-256 {:code 0x12, :length 32, :system "SHA-256"}
-   :sha2-512 {:code 0x13, :length 64, :system "SHA-512"}
+  "Map of information about the available content hashing algorithms."
+  {:sha1     {:code 0x11, :length 20}
+   :sha2-256 {:code 0x12, :length 32}
+   :sha2-512 {:code 0x13, :length 64}
    :sha3     {:code 0x14, :length 64}
    :blake2b  {:code 0x40, :length 64}
    :blake2s  {:code 0x41, :length 32}})
