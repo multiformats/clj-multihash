@@ -3,6 +3,10 @@
   (:require
     [clojure.string :as str])
   (:import
+    (java.io
+      InputStream
+      IOException
+      PushbackInputStream)
     java.security.MessageDigest))
 
 
@@ -248,19 +252,24 @@
   (bytes->hex (encode mhash)))
 
 
-(defn decode
-  "Decodes a hex string or byte array into a multihash value."
-  [encoded]
-  (let [^bytes encoded (if (string? encoded)
-                         (hex->bytes encoded)
-                         encoded)
-        code (aget encoded 0)
+(defn decode-array
+  "Decodes a byte array directly into multihash. Throws `IOException` on
+  malformed input, and `IllegalArgumentException` if the multihash is invalid."
+  [^bytes encoded]
+  (when (< (alength encoded) 3)
+    (throw (IOException.
+             (str "Cannot read multihash from byte array: " (alength encoded)
+                  " is less than the minimum of 3"))))
+  (let [code (aget encoded 0)
         length (aget encoded 1)
-        payload-length (- (alength encoded) 2)]
-    (when (not= length payload-length)
-      (throw (IllegalArgumentException.
-               (str "Encoded digest length " length " does not match actual "
-                    "digest payload of " payload-length " bytes"))))
+        payload (- (alength encoded) 2)]
+    (when (< length 1)
+      (throw (IOException.
+               (str "Encoded length " length " is invalid"))))
+    (when (< payload length)
+      (throw (IOException.
+               (str "Encoded digest length " length " exceeds actual "
+                    "remaining payload of " payload " bytes"))))
     (let [digest (byte-array length)]
       (System/arraycopy encoded 2 digest 0 length)
       (create code digest))))
