@@ -240,8 +240,8 @@
   [mhash]
   (let [length (:length mhash)
         encoded (byte-array (+ length 2))]
-    (aset encoded 0 (byte (:code mhash)))
-    (aset encoded 1 (byte length))
+    (aset-byte encoded 0 (byte (:code mhash)))
+    (aset-byte encoded 1 (byte length))
     (System/arraycopy (:bytes mhash) 0 encoded 2 length)
     encoded))
 
@@ -275,4 +275,40 @@
       (create code digest))))
 
 
-; TODO: (read! InputStream)
+(defprotocol Decodable
+  "This protocol provides a method for data sources which a multihash can be
+  read from."
+
+  (decode
+    [source]
+    "Attempts to read a multihash value from the data source."))
+
+
+(extend-protocol Decodable
+
+  (class (byte-array 0))
+
+  (decode
+    [source]
+    (decode-array source))
+
+
+  String
+
+  (decode
+    [source]
+    (decode-array (hex->bytes source)))
+
+
+  InputStream
+
+  (decode
+    [source]
+    (throw (UnsupportedOperationException. "NYI")))
+
+
+  PushbackInputStream
+
+  (decode
+    [source]
+    (throw (UnsupportedOperationException. "NYI"))))
