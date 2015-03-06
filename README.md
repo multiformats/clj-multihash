@@ -19,8 +19,10 @@ Leiningen, add the following dependency to your project definition:
 
 ## Usage
 
-The library defines a `Multihash` type, which serves as an immutable
-representation of a hash digest for a specific algorithm.
+The main focus of this library is the `Multihash` type, which serves as an
+immutable representation of the output digest for a specific hash algorithm.
+Multihashes are sortable, support metadata, and implement value-based equality
+and hash-code generation.
 
 ```clojure
 => (require '[multihash.core :as multihash])
@@ -50,9 +52,8 @@ representation of a hash digest for a specific algorithm.
 #bin "29MYwcRiruhy9BEJpN/TBIhxoD3t0P4OdXztV9rW8tc="
 ```
 
-Multihashes are also sortable, support metadata, and implement value-based
-equality and hash-code generation. The library also provides functions to encode
-and decode multihashes:
+There are also functions to handle encoding and decoding multihashes for binary
+serialization:
 
 ```clojure
 ; Directly encode a multihash into a byte array:
@@ -70,7 +71,7 @@ true
 true
 ```
 
-Decoding is implemented as the `Decodable` protocol, so it can be extended to
+Decoding is implemented as the protocol `multihash.core/Decodable`, so it can be extended to
 other data source types like `java.io.InputStream`.
 
 ## License
