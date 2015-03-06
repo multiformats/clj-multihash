@@ -1,12 +1,12 @@
 clj-multihash
 =============
 
-[![Build Status](https://travis-ci.org/greglook/clj-multihash.svg?branch=master)](https://travis-ci.org/greglook/clj-multihash)
+[![Build Status](https://travis-ci.org/greglook/clj-multihash.svg?branch=develop)](https://travis-ci.org/greglook/clj-multihash)
 [![Coverage Status](https://coveralls.io/repos/greglook/clj-multihash/badge.svg)](https://coveralls.io/r/greglook/clj-multihash)
 
 A Clojure library implementing the
 [multihash](https://github.com/jbenet/multihash) standard. This provides an
-extensible, efficient representation for cryptographic hashes.
+extensible, efficient binary representation for cryptographic hashes.
 
 ## Installation
 
