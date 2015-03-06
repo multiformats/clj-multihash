@@ -200,15 +200,15 @@
   code or a keyword name as the first argument. The digest may either by a byte
   array or a hex string."
   [algorithm digest]
-  (let [code (:code (get-algorithm algorithm))]
-    (when-not (integer? code)
+  (let [algo (get-algorithm algorithm)]
+    (when-not (integer? (:code algo))
       (throw (IllegalArgumentException.
                (str "Argument " (pr-str algorithm) " does not "
                     "represent a valid hash algorithm."))))
     (let [digest (if (string? digest) digest (bytes->hex digest))]
       (when-let [err (validate-digest digest)]
         (throw (IllegalArgumentException. ^String err)))
-      (Multihash. code digest nil))))
+      (Multihash. (:code algo) digest nil))))
 
 
 (defmacro ^:private defhash
