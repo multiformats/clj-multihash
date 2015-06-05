@@ -23,11 +23,11 @@
     (let [algorithm (multihash/get-algorithm code)]
       (is (= code (:code algorithm)))
       (is (keyword? (:name algorithm)))))
-  (doseq [[algorithm data] multihash/algorithms]
+  (doseq [[algorithm code] multihash/algorithm-codes]
     (let [by-name (multihash/get-algorithm algorithm)
-          by-code (multihash/get-algorithm (:code data))]
+          by-code (multihash/get-algorithm code)]
       (is (= algorithm (:name by-name)))
-      (is (= (:code data) (:code by-code)))
+      (is (= code (:code by-code)))
       (is (= by-name by-code)))))
 
 

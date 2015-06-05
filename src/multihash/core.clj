@@ -12,14 +12,25 @@
 
 ;; ## Hash Function Algorithms
 
-(def ^:const algorithms
+(def ^:const algorithm-codes
   "Map of information about the available content hashing algorithms."
-  {:sha1     {:code 0x11, :length 20}
-   :sha2-256 {:code 0x12, :length 32}
-   :sha2-512 {:code 0x13, :length 64}
-   :sha3     {:code 0x14, :length 64}
-   :blake2b  {:code 0x40, :length 64}
-   :blake2s  {:code 0x41, :length 32}})
+  {:sha1     0x11
+   :sha2-256 0x12
+   :sha2-512 0x13
+   :sha3     0x14
+   :blake2b  0x40
+   :blake2s  0x41})
+
+
+; TODO: questionably useful
+(def ^:const algorithm-lengths
+  "Map of algorithm names to the default digest length."
+  {:sha1     20
+   :sha2-256 32
+   :sha2-512 64
+   :sha3     64
+   :blake2b  64
+   :blake2s  32})
 
 
 (defn app-code?
@@ -34,19 +45,19 @@
   [value]
   (cond
     (keyword? value)
-    (when-let [data (get algorithms value)]
-      (assoc data :name value))
+      (when-let [code (get algorithm-codes value)]
+        {:code code, :name value})
 
     (not (integer? value))
-    nil
+      nil
 
     (app-code? value)
-    {:code value, :name (keyword (str "app-" value))}
+      {:code value, :name (keyword (str "app-" value))}
 
     :else
-    (some #(when (= value (:code (val %)))
-             (assoc (val %) :name (key %)))
-          algorithms)))
+      (some #(when (= value (val %))
+               {:code value, :name (key %)})
+            algorithm-codes)))
 
 
 
@@ -133,7 +144,7 @@
 
 ;; Multihash identifiers have two properties:
 ;;
-;; - `:code` is a numeric code for an algorithm entry in `algorithms` or an
+;; - `:code` is a numeric code for an algorithm entry in `algorithm-codes` or an
 ;;   application-specific algorithm code.
 ;; - `:digest` is a string holding the hex-encoded algorithm output.
 (deftype Multihash
