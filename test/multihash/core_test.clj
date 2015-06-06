@@ -6,6 +6,7 @@
 
 
 (deftest app-specific-codes
+  (is (nil? (multihash/app-code? 17.0)))
   (is (false? (multihash/app-code? 0x00)))
   (doseq [code (range 0x01 0x10)]
     (is (true? (multihash/app-code? code))

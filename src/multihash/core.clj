@@ -20,9 +20,11 @@
 
 
 (defn app-code?
-  "True if the given code number is assigned to the application-specfic range."
+  "True if the given code number is assigned to the application-specfic range.
+  Returns nil if the argument is not an integer."
   [code]
-  (< 0 code 0x10))
+  (when (integer? code)
+    (< 0 code 0x10)))
 
 
 (defn get-algorithm
