@@ -3,29 +3,28 @@
   (:require
     [clojure.string :as str])
   (:import
-    (java.io
-      InputStream
-      IOException
-      PushbackInputStream)
+    java.io.IOException
     java.security.MessageDigest))
 
 
 ;; ## Hash Function Algorithms
 
-(def ^:const algorithms
+(def ^:const algorithm-codes
   "Map of information about the available content hashing algorithms."
-  {:sha1     {:code 0x11, :length 20}
-   :sha2-256 {:code 0x12, :length 32}
-   :sha2-512 {:code 0x13, :length 64}
-   :sha3     {:code 0x14, :length 64}
-   :blake2b  {:code 0x40, :length 64}
-   :blake2s  {:code 0x41, :length 32}})
+  {:sha1     0x11
+   :sha2-256 0x12
+   :sha2-512 0x13
+   :sha3     0x14
+   :blake2b  0x40
+   :blake2s  0x41})
 
 
 (defn app-code?
-  "True if the given code number is assigned to the application-specfic range."
+  "True if the given code number is assigned to the application-specfic range.
+  Returns nil if the argument is not an integer."
   [code]
-  (< 0 code 0x10))
+  (when (integer? code)
+    (< 0 code 0x10)))
 
 
 (defn get-algorithm
@@ -34,19 +33,19 @@
   [value]
   (cond
     (keyword? value)
-    (when-let [data (get algorithms value)]
-      (assoc data :name value))
+      (when-let [code (get algorithm-codes value)]
+        {:code code, :name value})
 
     (not (integer? value))
-    nil
+      nil
 
     (app-code? value)
-    {:code value, :name (keyword (str "app-" value))}
+      {:code value, :name (keyword (str "app-" value))}
 
     :else
-    (some #(when (= value (:code (val %)))
-             (assoc (val %) :name (key %)))
-          algorithms)))
+      (some #(when (= value (val %))
+               {:code value, :name (key %)})
+            algorithm-codes)))
 
 
 
@@ -105,27 +104,27 @@
 (defn- validate-digest
   "Checks a string to determine whether it's well-formed hexadecimal digest.
   Returns an error message if the argument is invalid."
+  ^String
   [digest]
-  (let [length (count digest)]
-    (cond
-      (not (string? digest))
+  (cond
+    (not (string? digest))
       (str "Value is not a string: " (pr-str digest))
 
-      (odd? length)
-      (str "String '" digest "' is not a valid digest: "
-           "number of characters (" length ") is odd")
-
-      (not (re-matches #"^[0-9a-fA-F]+$" digest))
+    (not (re-matches #"^[0-9a-fA-F]*$" digest))
       (str "String '" digest "' is not a valid digest: "
            "contains illegal characters")
 
-      (< length 2)
+    (< (count digest) 2)
       (str "Digest must contain at least one byte")
 
-      (> length 254)
-      (str "Digest exceeds maximum supported length of 127: " (/ length 2))
+    (> (count digest) 254)
+      (str "Digest exceeds maximum supported length of 127: " (/ (count digest) 2))
 
-      :else nil)))
+    (odd? (count digest))
+      (str "String '" digest "' is not a valid digest: "
+           "number of characters (" (count digest) ") is odd")
+
+    :else nil))
 
 
 
@@ -133,7 +132,7 @@
 
 ;; Multihash identifiers have two properties:
 ;;
-;; - `:code` is a numeric code for an algorithm entry in `algorithms` or an
+;; - `:code` is a numeric code for an algorithm entry in `algorithm-codes` or an
 ;;   application-specific algorithm code.
 ;; - `:digest` is a string holding the hex-encoded algorithm output.
 (deftype Multihash
@@ -211,7 +210,7 @@
                     "represent a valid hash algorithm."))))
     (let [digest (if (string? digest) digest (bytes->hex digest))]
       (when-let [err (validate-digest digest)]
-        (throw (IllegalArgumentException. ^String err)))
+        (throw (IllegalArgumentException. err)))
       (Multihash. (:code algo) digest nil))))
 
 
@@ -263,7 +262,7 @@
   (let [code (aget encoded 0)
         length (aget encoded 1)
         payload (- (alength encoded) 2)]
-    (when (< length 1)
+    (when-not (pos? length)
       (throw (IOException.
                (str "Encoded length " length " is invalid"))))
     (when (< payload length)
@@ -297,18 +296,4 @@
 
   (decode
     [source]
-    (decode-array (hex->bytes source)))
-
-
-  InputStream
-
-  (decode
-    [source]
-    (throw (UnsupportedOperationException. "NYI")))
-
-
-  PushbackInputStream
-
-  (decode
-    [source]
-    (throw (UnsupportedOperationException. "NYI"))))
+    (decode-array (hex->bytes source))))

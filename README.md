@@ -19,11 +19,13 @@ Leiningen, add the following dependency to your project definition:
 
 ## Usage
 
-The library defines a `Multihash` type, which serves as an immutable
-representation of a hash digest for a specific algorithm.
+The main focus of this library is the `Multihash` type, which serves as an
+immutable representation of the output digest for a specific hash algorithm.
+Multihashes are sortable, support metadata, and implement value-based equality
+and hash-code generation.
 
 ```clojure
-=> (require '[multihash.core :as multihash])
+(require '[multihash.core :as multihash])
 
 ; List the supported hash functions:
 => (keys multihash/algorithms)
@@ -42,17 +44,18 @@ representation of a hash digest for a specific algorithm.
 "hash:sha2-256:dbd318c1c462aee872f41109a4dfd3048871a03dedd0fe0e757ced57dad6f2d7"
 
 ; Properties can be accessed using keyword lookups:
-=> ((juxt :code :algorithm :length :digest) mhash)
-[18 :sha2-256 32 "dbd318c1c462aee872f41109a4dfd3048871a03dedd0fe0e757ced57dad6f2d7"]
+=> [(:code mhash) (:algorithm mhash)]
+[18 :sha2-256]
+=> [(:length mhash) (:digest mhash)]
+[32 "dbd318c1c462aee872f41109a4dfd3048871a03dedd0fe0e757ced57dad6f2d7"]
 
 ; The raw digest bytes are also available if needed:
 => (:bytes mhash)
 #bin "29MYwcRiruhy9BEJpN/TBIhxoD3t0P4OdXztV9rW8tc="
 ```
 
-Multihashes are also sortable, support metadata, and implement value-based
-equality and hash-code generation. The library also provides functions to encode
-and decode multihashes:
+There are also functions to handle encoding and decoding multihashes for binary
+serialization:
 
 ```clojure
 ; Directly encode a multihash into a byte array:
@@ -70,7 +73,7 @@ true
 true
 ```
 
-Decoding is implemented as the `Decodable` protocol, so it can be extended to
+Decoding is implemented as the protocol `multihash.core/Decodable`, so it can be extended to
 other data source types like `java.io.InputStream`.
 
 ## License

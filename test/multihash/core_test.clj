@@ -2,10 +2,13 @@
   (:require
     [clojure.string :as str]
     [clojure.test :refer :all]
-    [multihash.core :as multihash]))
+    [multihash.core :as multihash])
+  (:import
+    java.io.IOException))
 
 
 (deftest app-specific-codes
+  (is (nil? (multihash/app-code? 17.0)))
   (is (false? (multihash/app-code? 0x00)))
   (doseq [code (range 0x01 0x10)]
     (is (true? (multihash/app-code? code))
@@ -23,11 +26,11 @@
     (let [algorithm (multihash/get-algorithm code)]
       (is (= code (:code algorithm)))
       (is (keyword? (:name algorithm)))))
-  (doseq [[algorithm data] multihash/algorithms]
+  (doseq [[algorithm code] multihash/algorithm-codes]
     (let [by-name (multihash/get-algorithm algorithm)
-          by-code (multihash/get-algorithm (:code data))]
+          by-code (multihash/get-algorithm code)]
       (is (= algorithm (:name by-name)))
-      (is (= (:code data) (:code by-code)))
+      (is (= code (:code by-code)))
       (is (= by-name by-code)))))
 
 
@@ -44,6 +47,9 @@
   (is (thrown? IllegalArgumentException
                (multihash/create :sha1 ""))
       "Empty digest should be rejected")
+  (is (thrown? IllegalArgumentException
+               (multihash/create :sha1 "018zk80q"))
+      "Malformed digest should be rejected")
   (is (thrown? IllegalArgumentException
                (multihash/create :sha1 (byte-array 128)))
       "Digest length should be limited to 127")
@@ -108,6 +114,24 @@
 
    "40040006b46b"
    [0x40 :blake2b 4 "0006b46b"]})
+
+
+(deftest decoding-failures
+  (is (thrown? IOException
+               (multihash/decode-array (byte-array 2)))
+      "byte array must have at least three bytes")
+  (is (thrown? IOException
+               (multihash/decode-array
+                 (doto (byte-array 4)
+                   (aset-byte 0 0x11)
+                   (aset-byte 1 0))))
+      "Encoded length must be positive")
+  (is (thrown? IOException
+               (multihash/decode-array
+                 (doto (byte-array 4)
+                   (aset-byte 0 0x11)
+                   (aset-byte 1 8))))
+      "Encoded length must be within byte content"))
 
 
 (deftest example-coding
