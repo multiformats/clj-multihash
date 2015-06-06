@@ -46,6 +46,9 @@
                (multihash/create :sha1 ""))
       "Empty digest should be rejected")
   (is (thrown? IllegalArgumentException
+               (multihash/create :sha1 "018zk80q"))
+      "Malformed digest should be rejected")
+  (is (thrown? IllegalArgumentException
                (multihash/create :sha1 (byte-array 128)))
       "Digest length should be limited to 127")
   (is (thrown? IllegalArgumentException

@@ -104,27 +104,27 @@
 (defn- validate-digest
   "Checks a string to determine whether it's well-formed hexadecimal digest.
   Returns an error message if the argument is invalid."
+  ^String
   [digest]
-  (let [length (count digest)]
-    (cond
-      (not (string? digest))
+  (cond
+    (not (string? digest))
       (str "Value is not a string: " (pr-str digest))
 
-      (odd? length)
-      (str "String '" digest "' is not a valid digest: "
-           "number of characters (" length ") is odd")
-
-      (not (re-matches #"^[0-9a-fA-F]+$" digest))
+    (not (re-matches #"^[0-9a-fA-F]*$" digest))
       (str "String '" digest "' is not a valid digest: "
            "contains illegal characters")
 
-      (< length 2)
+    (< (count digest) 2)
       (str "Digest must contain at least one byte")
 
-      (> length 254)
-      (str "Digest exceeds maximum supported length of 127: " (/ length 2))
+    (> (count digest) 254)
+      (str "Digest exceeds maximum supported length of 127: " (/ (count digest) 2))
 
-      :else nil)))
+    (odd? (count digest))
+      (str "String '" digest "' is not a valid digest: "
+           "number of characters (" (count digest) ") is odd")
+
+    :else nil))
 
 
 
@@ -210,7 +210,7 @@
                     "represent a valid hash algorithm."))))
     (let [digest (if (string? digest) digest (bytes->hex digest))]
       (when-let [err (validate-digest digest)]
-        (throw (IllegalArgumentException. ^String err)))
+        (throw (IllegalArgumentException. err)))
       (Multihash. (:code algo) digest nil))))
 
 
