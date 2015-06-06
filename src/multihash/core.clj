@@ -3,10 +3,7 @@
   (:require
     [clojure.string :as str])
   (:import
-    (java.io
-      InputStream
-      IOException
-      PushbackInputStream)
+    java.io.IOException
     java.security.MessageDigest))
 
 
@@ -297,18 +294,4 @@
 
   (decode
     [source]
-    (decode-array (hex->bytes source)))
-
-
-  InputStream
-
-  (decode
-    [source]
-    (throw (UnsupportedOperationException. "NYI")))
-
-
-  PushbackInputStream
-
-  (decode
-    [source]
-    (throw (UnsupportedOperationException. "NYI"))))
+    (decode-array (hex->bytes source))))
