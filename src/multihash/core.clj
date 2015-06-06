@@ -262,7 +262,7 @@
   (let [code (aget encoded 0)
         length (aget encoded 1)
         payload (- (alength encoded) 2)]
-    (when (< length 1)
+    (when-not (pos? length)
       (throw (IOException.
                (str "Encoded length " length " is invalid"))))
     (when (< payload length)

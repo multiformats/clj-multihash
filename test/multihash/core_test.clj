@@ -2,7 +2,9 @@
   (:require
     [clojure.string :as str]
     [clojure.test :refer :all]
-    [multihash.core :as multihash]))
+    [multihash.core :as multihash])
+  (:import
+    java.io.IOException))
 
 
 (deftest app-specific-codes
@@ -112,6 +114,24 @@
 
    "40040006b46b"
    [0x40 :blake2b 4 "0006b46b"]})
+
+
+(deftest decoding-failures
+  (is (thrown? IOException
+               (multihash/decode-array (byte-array 2)))
+      "byte array must have at least three bytes")
+  (is (thrown? IOException
+               (multihash/decode-array
+                 (doto (byte-array 4)
+                   (aset-byte 0 0x11)
+                   (aset-byte 1 0))))
+      "Encoded length must be positive")
+  (is (thrown? IOException
+               (multihash/decode-array
+                 (doto (byte-array 4)
+                   (aset-byte 0 0x11)
+                   (aset-byte 1 8))))
+      "Encoded length must be within byte content"))
 
 
 (deftest example-coding
