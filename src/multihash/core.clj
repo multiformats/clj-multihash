@@ -22,17 +22,6 @@
    :blake2s  0x41})
 
 
-; TODO: questionably useful
-(def ^:const algorithm-lengths
-  "Map of algorithm names to the default digest length."
-  {:sha1     20
-   :sha2-256 32
-   :sha2-512 64
-   :sha3     64
-   :blake2b  64
-   :blake2s  32})
-
-
 (defn app-code?
   "True if the given code number is assigned to the application-specfic range."
   [code]
