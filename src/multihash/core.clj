@@ -3,7 +3,9 @@
   (:require
     [clojure.string :as str])
   (:import
-    java.io.IOException
+    (java.io
+      InputStream
+      IOException)
     java.security.MessageDigest))
 
 
@@ -274,6 +276,26 @@
       (create code digest))))
 
 
+(defn- read-stream-digest
+  "Reads a byte digest array from an input stream. First reads a byte giving
+  the length of the digest data to read. Throws an IOException if the length is
+  invalid or there is an error reading from the stream."
+  ^bytes
+  [^InputStream input]
+  (let [length (.read input)]
+    (when-not (pos? length)
+      (throw (IOException.
+               (format "Byte %02x is not a valid digest length."
+                       length))))
+    (let [digest (byte-array length)]
+      (loop [offset 0
+             remaining length]
+        (let [n (.read input digest offset remaining)]
+          (if (< n remaining)
+            (recur (+ offset n) (- remaining n))
+            digest))))))
+
+
 (defprotocol Decodable
   "This protocol provides a method for data sources which a multihash can be
   read from."
@@ -296,4 +318,13 @@
 
   (decode
     [source]
-    (decode-array (hex->bytes source))))
+    (decode-array (hex->bytes source)))
+
+
+  InputStream
+
+  (decode
+    [source]
+    (let [code (.read source)
+          digest (read-stream-digest source)]
+      (create code digest))))

@@ -4,7 +4,9 @@
     [clojure.test :refer :all]
     [multihash.core :as multihash])
   (:import
-    java.io.IOException))
+    (java.io
+      ByteArrayInputStream
+      IOException)))
 
 
 (deftest app-specific-codes
@@ -116,7 +118,7 @@
    [0x40 :blake2b 4 "0006b46b"]})
 
 
-(deftest decoding-failures
+(deftest array-decoding-failures
   (is (thrown? IOException
                (multihash/decode-array (byte-array 2)))
       "byte array must have at least three bytes")
@@ -134,18 +136,40 @@
       "Encoded length must be within byte content"))
 
 
+(defn stream-fixture
+  "Constructs a stream with certain leading bytes for testing."
+  ([code length]
+   (stream-fixture code length length))
+  ([code length actual]
+   (let [buffer (byte-array actual)]
+     (aset-byte buffer 0 code)
+     (aset-byte buffer 1 length)
+     (ByteArrayInputStream. buffer))))
+
+
+(deftest stream-decoding-failures
+  (is (thrown? IOException
+               (multihash/decode (stream-fixture 0x11 0 4)))
+      "Stream with non-positive length is illegal.")
+  (is (thrown? Exception
+               (multihash/decode (stream-fixture 0x11 20 5)))
+      "Stream without enough data throws exception.."))
+
+
 (deftest example-coding
   (testing "Encoding is reflexive"
     (let [mhash (multihash/create 0x02 "0beec7b8")]
       (is (= mhash (multihash/decode (multihash/encode mhash))))))
-  (testing "Encoded multihashes match expected hex"
-    (doseq [[encoded [code algorithm length digest]] examples]
-      (let [mhash (multihash/create algorithm digest)]
-        (is (= encoded (multihash/encode-hex mhash))))))
-  (testing "Decoding examples gives expected properties"
-    (doseq [[encoded [code algorithm length digest]] examples]
-      (let [mhash (multihash/decode encoded)]
-        (is (= code (:code mhash)))
-        (is (= algorithm (:algorithm mhash)))
-        (is (= length (:length mhash)))
-        (is (= digest (:digest mhash)))))))
+  (doseq [[hex [code algorithm length digest]] examples]
+    (let [mhash (multihash/create algorithm digest)]
+      (is (= code (:code mhash)))
+      (is (= algorithm (:algorithm mhash)))
+      (is (= length (:length mhash)))
+      (is (= digest (:digest mhash)))
+      (is (= hex (multihash/encode-hex mhash))
+          "Encoded multihashes match expected hex")
+      (is (= mhash (multihash/decode hex))
+          "Hex decodes into expected multihash")
+      (let [stream (ByteArrayInputStream. (multihash/encode mhash))]
+        (is (= mhash (multihash/decode stream))
+            "Multihash round-trips through InputStream")))))
