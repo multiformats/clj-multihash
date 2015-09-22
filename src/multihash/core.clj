@@ -1,7 +1,9 @@
 (ns multihash.core
   "Core multihash type definition and helper methods."
   (:require
-    [clojure.string :as str])
+    [clojure.string :as str]
+    [multihash.base58 :as b58]
+    [multihash.hex :as hex])
   (:import
     (java.io
       InputStream
@@ -51,85 +53,6 @@
 
 
 
-;; ## Utility Functions
-
-(defn- zero-pad-str
-  "Pads a string with leading zeroes up to the given width."
-  [width value]
-  (let [string (str value)]
-    (if (<= width (count string))
-      string
-      (-> width
-          (- (count string))
-          (repeat "0")
-          str/join
-          (str string)))))
-
-
-(defn- zero-pad-bytes
-  "Pads a byte array with leading zeroes (or trims them) to ensure it has the
-  given length. Returns the same array if the length is already correct, or a
-  new resized array if not."
-  [width ^bytes array]
-  (let [array-length (alength array)]
-    (if (= width array-length)
-      array
-      (let [array' (byte-array width)]
-        (if (< array-length width)
-          (System/arraycopy array 0 array' (- width array-length) array-length)
-          (System/arraycopy array (- array-length width) array' 0 width))
-        array'))))
-
-
-(defn- bytes->hex
-  "Converts a byte array into a lowercase hexadecimal string."
-  [^bytes value]
-  (when (and value (pos? (alength value)))
-    (let [width (* 2 (alength value))
-          hex (-> (BigInteger. 1 value)
-                  (.toString 16)
-                  str/lower-case)]
-      (zero-pad-str width hex))))
-
-
-(defn- hex->bytes
-  "Parses a hexadecimal string into a byte array. Ensures that the resulting
-  array is zero-padded to match the hex string length."
-  ^bytes
-  [^String value]
-  (when (and value (not (empty? value)))
-    (let [length (/ (count value) 2)
-          int-bytes (.toByteArray (BigInteger. value 16))]
-      (zero-pad-bytes length int-bytes))))
-
-
-(defn- validate-digest
-  "Checks a string to determine whether it's well-formed hexadecimal digest.
-  Returns an error message if the argument is invalid."
-  ^String
-  [digest]
-  (cond
-    (not (string? digest))
-      (str "Value is not a string: " (pr-str digest))
-
-    (not (re-matches #"^[0-9a-fA-F]*$" digest))
-      (str "String '" digest "' is not a valid digest: "
-           "contains illegal characters")
-
-    (< (count digest) 2)
-      (str "Digest must contain at least one byte")
-
-    (> (count digest) 254)
-      (str "Digest exceeds maximum supported length of 127: " (/ (count digest) 2))
-
-    (odd? (count digest))
-      (str "String '" digest "' is not a valid digest: "
-           "number of characters (" (count digest) ") is odd")
-
-    :else nil))
-
-
-
 ;; ## Multihash Type
 
 ;; Multihash identifiers have two properties:
@@ -175,7 +98,7 @@
       :algorithm (:name (get-algorithm code))
       :length (/ (count digest) 2)
       :digest digest
-      :bytes (hex->bytes digest)
+      :bytes (hex/decode digest)
       not-found))
 
   (valAt [this k]
@@ -210,8 +133,8 @@
       (throw (IllegalArgumentException.
                (str "Argument " (pr-str algorithm) " does not "
                     "represent a valid hash algorithm."))))
-    (let [digest (if (string? digest) digest (bytes->hex digest))]
-      (when-let [err (validate-digest digest)]
+    (let [digest (if (string? digest) digest (hex/encode digest))]
+      (when-let [err (hex/validate digest)]
         (throw (IllegalArgumentException. err)))
       (Multihash. (:code algo) digest nil))))
 
@@ -247,10 +170,16 @@
     encoded))
 
 
-(defn encode-hex
+(defn hex
   "Encodes a multihash into a hexadecimal string."
   [mhash]
-  (bytes->hex (encode mhash)))
+  (hex/encode (encode mhash)))
+
+
+(defn base58
+  "Encodes a multihash into a Base-58 string."
+  [mhash]
+  (b58/encode (encode mhash)))
 
 
 (defn decode-array
@@ -318,7 +247,10 @@
 
   (decode
     [source]
-    (decode-array (hex->bytes source)))
+    (decode-array
+      (if (hex/valid? source)
+        (hex/decode source)
+        (b58/decode source))))
 
 
   InputStream
