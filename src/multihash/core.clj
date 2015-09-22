@@ -85,9 +85,9 @@
   (compareTo [this that]
     (cond
       (= this that) 0
-      (< code (:code that)) -1
-      (> code (:code that)) 1
-      :else (compare digest (:digest that))))
+      (< code (.code that)) -1
+      (> code (.code that)) 1
+      :else (compare digest (.digest that))))
 
 
   clojure.lang.ILookup
@@ -97,8 +97,7 @@
       :code code
       :algorithm (:name (get-algorithm code))
       :length (/ (count digest) 2)
-      :digest digest
-      :bytes (hex/decode digest)
+      :digest (hex/decode digest)
       not-found))
 
   (valAt [this k]
@@ -166,7 +165,7 @@
         encoded (byte-array (+ length 2))]
     (aset-byte encoded 0 (byte (:code mhash)))
     (aset-byte encoded 1 (byte length))
-    (System/arraycopy (:bytes mhash) 0 encoded 2 length)
+    (System/arraycopy (:digest mhash) 0 encoded 2 length)
     encoded))
 
 
