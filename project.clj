@@ -8,7 +8,7 @@
 
   :plugins [[lein-cloverage "1.0.2"]]
 
-  :dependencies [[org.clojure/clojure "1.6.0"]]
+  :dependencies [[org.clojure/clojure "1.7.0"]]
 
   :codox {:defaults {:doc/format :markdown}
           :output-dir "doc/api"
