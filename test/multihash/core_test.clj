@@ -68,9 +68,9 @@
     (is (= :sha1 (:algorithm mh1)))
     (is (= :sha2-256 (:algorithm mh2)))
     (is (= :sha2-512 (:algorithm mh3)))
-    (is (not= (.digest mh1) (.digest mh2)))
-    (is (not= (.digest mh1) (.digest mh3)))
-    (is (not= (.digest mh2) (.digest mh3)))))
+    (is (not= (._digest mh1) (._digest mh2)))
+    (is (not= (._digest mh1) (._digest mh3)))
+    (is (not= (._digest mh2) (._digest mh3)))))
 
 
 (deftest value-semantics
@@ -165,7 +165,7 @@
       (is (= code (:code mhash)))
       (is (= algorithm (:algorithm mhash)))
       (is (= length (:length mhash)))
-      (is (= digest (.digest mhash)))
+      (is (= digest (._digest mhash)))
       (is (= hex (multihash/hex mhash))
           "Encoded multihashes match expected hex")
       (is (= mhash (multihash/decode hex))
