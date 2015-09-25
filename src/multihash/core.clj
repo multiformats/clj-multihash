@@ -172,13 +172,15 @@
 (defn hex
   "Encodes a multihash into a hexadecimal string."
   [mhash]
-  (hex/encode (encode mhash)))
+  (when mhash
+    (hex/encode (encode mhash))))
 
 
 (defn base58
   "Encodes a multihash into a Base-58 string."
   [mhash]
-  (b58/encode (encode mhash)))
+  (when mhash
+    (b58/encode (encode mhash))))
 
 
 (defn decode-array
