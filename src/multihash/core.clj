@@ -61,23 +61,23 @@
 ;;   application-specific algorithm code.
 ;; - `:digest` is a string holding the hex-encoded algorithm output.
 (deftype Multihash
-  [^long code ^String digest _meta]
+  [^long _code ^String _digest _meta]
 
   Object
 
   (toString [this]
-    (str "hash:" (name (:name (get-algorithm code))) \: digest))
+    (str "hash:" (name (:name (get-algorithm _code))) \: _digest))
 
   (equals [this that]
     (cond
       (identical? this that) true
       (instance? Multihash that)
-        (and (= code   (.code   ^Multihash that))
-             (= digest (.digest ^Multihash that)))
+        (and (= _code   (._code   ^Multihash that))
+             (= _digest (._digest ^Multihash that)))
       :else false))
 
   (hashCode [this]
-    (hash-combine code digest))
+    (hash-combine _code _digest))
 
 
   Comparable
@@ -85,19 +85,19 @@
   (compareTo [this that]
     (cond
       (= this that) 0
-      (< code (.code that)) -1
-      (> code (.code that)) 1
-      :else (compare digest (.digest that))))
+      (< _code (._code that)) -1
+      (> _code (._code that)) 1
+      :else (compare _digest (._digest that))))
 
 
   clojure.lang.ILookup
 
   (valAt [this k not-found]
     (case k
-      :code code
-      :algorithm (:name (get-algorithm code))
-      :length (/ (count digest) 2)
-      :digest (hex/decode digest)
+      :code _code
+      :algorithm (:name (get-algorithm _code))
+      :length (/ (count _digest) 2)
+      :digest (hex/decode _digest)
       not-found))
 
   (valAt [this k]
@@ -111,8 +111,13 @@
 
   clojure.lang.IObj
 
-  (withMeta [_ m]
-    (Multihash. code digest m)))
+  (withMeta [_ meta-map]
+    (Multihash. _code _digest meta-map)))
+
+
+(defmethod print-method Multihash
+  [v ^java.io.Writer w]
+  (.write w (str v)))
 
 
 
