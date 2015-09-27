@@ -1,4 +1,4 @@
-(defproject mvxcvi/multihash "0.1.2"
+(defproject mvxcvi/multihash "0.2.0"
   :description "Native Clojure implementation of the multihash standard."
   :url "https://github.com/greglook/clj-multihash"
   :license {:name "Public Domain"
@@ -8,7 +8,7 @@
 
   :plugins [[lein-cloverage "1.0.2"]]
 
-  :dependencies [[org.clojure/clojure "1.6.0"]]
+  :dependencies [[org.clojure/clojure "1.7.0"]]
 
   :codox {:defaults {:doc/format :markdown}
           :output-dir "doc/api"

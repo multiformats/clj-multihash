@@ -1,9 +1,13 @@
 (ns multihash.core
   "Core multihash type definition and helper methods."
   (:require
-    [clojure.string :as str])
+    [clojure.string :as str]
+    [multihash.base58 :as b58]
+    [multihash.hex :as hex])
   (:import
-    java.io.IOException
+    (java.io
+      InputStream
+      IOException)
     java.security.MessageDigest))
 
 
@@ -49,85 +53,6 @@
 
 
 
-;; ## Utility Functions
-
-(defn- zero-pad-str
-  "Pads a string with leading zeroes up to the given width."
-  [width value]
-  (let [string (str value)]
-    (if (<= width (count string))
-      string
-      (-> width
-          (- (count string))
-          (repeat "0")
-          str/join
-          (str string)))))
-
-
-(defn- zero-pad-bytes
-  "Pads a byte array with leading zeroes (or trims them) to ensure it has the
-  given length. Returns the same array if the length is already correct, or a
-  new resized array if not."
-  [width ^bytes array]
-  (let [array-length (alength array)]
-    (if (= width array-length)
-      array
-      (let [array' (byte-array width)]
-        (if (< array-length width)
-          (System/arraycopy array 0 array' (- width array-length) array-length)
-          (System/arraycopy array (- array-length width) array' 0 width))
-        array'))))
-
-
-(defn- bytes->hex
-  "Converts a byte array into a lowercase hexadecimal string."
-  [^bytes value]
-  (when (and value (pos? (alength value)))
-    (let [width (* 2 (alength value))
-          hex (-> (BigInteger. 1 value)
-                  (.toString 16)
-                  str/lower-case)]
-      (zero-pad-str width hex))))
-
-
-(defn- hex->bytes
-  "Parses a hexadecimal string into a byte array. Ensures that the resulting
-  array is zero-padded to match the hex string length."
-  ^bytes
-  [^String value]
-  (when (and value (not (empty? value)))
-    (let [length (/ (count value) 2)
-          int-bytes (.toByteArray (BigInteger. value 16))]
-      (zero-pad-bytes length int-bytes))))
-
-
-(defn- validate-digest
-  "Checks a string to determine whether it's well-formed hexadecimal digest.
-  Returns an error message if the argument is invalid."
-  ^String
-  [digest]
-  (cond
-    (not (string? digest))
-      (str "Value is not a string: " (pr-str digest))
-
-    (not (re-matches #"^[0-9a-fA-F]*$" digest))
-      (str "String '" digest "' is not a valid digest: "
-           "contains illegal characters")
-
-    (< (count digest) 2)
-      (str "Digest must contain at least one byte")
-
-    (> (count digest) 254)
-      (str "Digest exceeds maximum supported length of 127: " (/ (count digest) 2))
-
-    (odd? (count digest))
-      (str "String '" digest "' is not a valid digest: "
-           "number of characters (" (count digest) ") is odd")
-
-    :else nil))
-
-
-
 ;; ## Multihash Type
 
 ;; Multihash identifiers have two properties:
@@ -136,23 +61,23 @@
 ;;   application-specific algorithm code.
 ;; - `:digest` is a string holding the hex-encoded algorithm output.
 (deftype Multihash
-  [^long code ^String digest _meta]
+  [^long _code ^String _digest _meta]
 
   Object
 
   (toString [this]
-    (str "hash:" (name (:name (get-algorithm code))) \: digest))
+    (str "hash:" (name (:name (get-algorithm _code))) \: _digest))
 
   (equals [this that]
     (cond
       (identical? this that) true
       (instance? Multihash that)
-        (and (= code   (.code   ^Multihash that))
-             (= digest (.digest ^Multihash that)))
+        (and (= _code   (._code   ^Multihash that))
+             (= _digest (._digest ^Multihash that)))
       :else false))
 
   (hashCode [this]
-    (hash-combine code digest))
+    (hash-combine _code _digest))
 
 
   Comparable
@@ -160,20 +85,19 @@
   (compareTo [this that]
     (cond
       (= this that) 0
-      (< code (:code that)) -1
-      (> code (:code that)) 1
-      :else (compare digest (:digest that))))
+      (< _code (._code that)) -1
+      (> _code (._code that)) 1
+      :else (compare _digest (._digest that))))
 
 
   clojure.lang.ILookup
 
   (valAt [this k not-found]
     (case k
-      :code code
-      :algorithm (:name (get-algorithm code))
-      :length (/ (count digest) 2)
-      :digest digest
-      :bytes (hex->bytes digest)
+      :code _code
+      :algorithm (:name (get-algorithm _code))
+      :length (/ (count _digest) 2)
+      :digest (hex/decode _digest)
       not-found))
 
   (valAt [this k]
@@ -187,8 +111,13 @@
 
   clojure.lang.IObj
 
-  (withMeta [_ m]
-    (Multihash. code digest m)))
+  (withMeta [_ meta-map]
+    (Multihash. _code _digest meta-map)))
+
+
+(defmethod print-method Multihash
+  [v ^java.io.Writer w]
+  (.write w (str v)))
 
 
 
@@ -208,8 +137,8 @@
       (throw (IllegalArgumentException.
                (str "Argument " (pr-str algorithm) " does not "
                     "represent a valid hash algorithm."))))
-    (let [digest (if (string? digest) digest (bytes->hex digest))]
-      (when-let [err (validate-digest digest)]
+    (let [digest (if (string? digest) digest (hex/encode digest))]
+      (when-let [err (hex/validate digest)]
         (throw (IllegalArgumentException. err)))
       (Multihash. (:code algo) digest nil))))
 
@@ -241,14 +170,22 @@
         encoded (byte-array (+ length 2))]
     (aset-byte encoded 0 (byte (:code mhash)))
     (aset-byte encoded 1 (byte length))
-    (System/arraycopy (:bytes mhash) 0 encoded 2 length)
+    (System/arraycopy (:digest mhash) 0 encoded 2 length)
     encoded))
 
 
-(defn encode-hex
+(defn hex
   "Encodes a multihash into a hexadecimal string."
   [mhash]
-  (bytes->hex (encode mhash)))
+  (when mhash
+    (hex/encode (encode mhash))))
+
+
+(defn base58
+  "Encodes a multihash into a Base-58 string."
+  [mhash]
+  (when mhash
+    (b58/encode (encode mhash))))
 
 
 (defn decode-array
@@ -274,6 +211,26 @@
       (create code digest))))
 
 
+(defn- read-stream-digest
+  "Reads a byte digest array from an input stream. First reads a byte giving
+  the length of the digest data to read. Throws an IOException if the length is
+  invalid or there is an error reading from the stream."
+  ^bytes
+  [^InputStream input]
+  (let [length (.read input)]
+    (when-not (pos? length)
+      (throw (IOException.
+               (format "Byte %02x is not a valid digest length."
+                       length))))
+    (let [digest (byte-array length)]
+      (loop [offset 0
+             remaining length]
+        (let [n (.read input digest offset remaining)]
+          (if (< n remaining)
+            (recur (+ offset n) (- remaining n))
+            digest))))))
+
+
 (defprotocol Decodable
   "This protocol provides a method for data sources which a multihash can be
   read from."
@@ -296,4 +253,16 @@
 
   (decode
     [source]
-    (decode-array (hex->bytes source))))
+    (decode-array
+      (if (hex/valid? source)
+        (hex/decode source)
+        (b58/decode source))))
+
+
+  InputStream
+
+  (decode
+    [source]
+    (let [code (.read source)
+          digest (read-stream-digest source)]
+      (create code digest))))
