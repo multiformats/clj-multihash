@@ -28,37 +28,45 @@ and hash-code generation.
 ```clojure
 (require '[multihash.core :as multihash])
 
-; List the supported hash functions:
-=> (keys multihash/algorithms)
-(:sha2-256 :sha2-512 :blake2b :sha3 :sha1 :blake2s)
+; List the known hash functions:
+=> (keys multihash/algorithm-codes)
+(:sha1 :sha2-256 :sha2-512 :sha3 :blake2b :blake2s)
 
 ; Manually create a multihash value:
 => (multihash/create :sha1 "0f1e2d3c4b5a6978")
 #<Multihash hash:sha1:0f1e2d3c4b5a6978>
 
-; Or use one of the hash constructors for built-in Java algorithms:
-=> (def mhash (multihash/sha2-256 (.getBytes "foo bar baz")))
+; Or use one of the constructors for built-in Java implementations:
+=> (keys multihash/functions)
+(:sha1 :sha2-256 :sha2-512)
+
+=> (def mhash (multihash/sha2-256 "foo bar baz"))
 #'user/mhash
 
+; Properties can be accessed using keyword lookups:
+=> (:algorithm mhash)
+:sha2-256
+=> (:code mhash)
+18
+=> (:length mhash)
+32 ; bytes
+
+; :digest returns a *copy* of the digest bytes:
+=> (:digest mhash)
+#bin "29MYwcRiruhy9BEJpN/TBIhxoD3t0P4OdXztV9rW8tc="
+```
+
+### Serialization
+
+One of the appeals of the multihash standard is that it can be serialized
+without specifying an encoding for the resulting byte representation. This
+library provides several formats for multihashes:
+
+```clojure
 ; Multihashes render as URN-like strings:
 => (str mhash)
 "hash:sha2-256:dbd318c1c462aee872f41109a4dfd3048871a03dedd0fe0e757ced57dad6f2d7"
 
-; Properties can be accessed using keyword lookups:
-=> [(:code mhash) (:algorithm mhash)]
-[18 :sha2-256]
-=> [(:length mhash) (:digest mhash)]
-[32 "dbd318c1c462aee872f41109a4dfd3048871a03dedd0fe0e757ced57dad6f2d7"]
-
-; The raw digest bytes are also available if needed:
-=> (:bytes mhash)
-#bin "29MYwcRiruhy9BEJpN/TBIhxoD3t0P4OdXztV9rW8tc="
-```
-
-There are also functions to handle encoding and decoding multihashes for binary
-serialization:
-
-```clojure
 ; Directly encode a multihash into a byte array:
 => (multihash/encode mhash)
 #bin "EiDb0xjBxGKu6HL0EQmk39MEiHGgPe3Q/g51fO1X2tby1w=="
@@ -67,15 +75,21 @@ serialization:
 => (= mhash (multihash/decode *1))
 true
 
-; Decode also works on hex strings:
-=> (multihash/encode-hex mhash)
+; Full hex encoding is supported:
+=> (multihash/hex mhash)
 "1220dbd318c1c462aee872f41109a4dfd3048871a03dedd0fe0e757ced57dad6f2d7"
+=> (= mhash (multihash/decode *1))
+true
+
+; As is base58 (compatible with IPFS):
+=> (multihash/base58 mhash)
+"Qmd8kgzaFLGYtTS1zfF37qKGgYQd5yKcQMyBeSa8UkUz4W"
 => (= mhash (multihash/decode *1))
 true
 ```
 
-Decoding is implemented as the protocol `multihash.core/Decodable`, so it can be extended to
-other data source types like `java.io.InputStream`.
+Decoding is implemented as a protocol, so it can be extended to other data
+source types as needed.
 
 ## License
 
