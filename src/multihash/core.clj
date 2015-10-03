@@ -144,6 +144,27 @@
       (Multihash. (:code algo) digest nil))))
 
 
+(defn- digest-content
+  "Constructs a cryptographic digest for a given algorithm and content. Content
+  may be in the form of a raw byte array, a `ByteBuffer`, or a string. Returns
+  a byte array with the digest."
+  ^bytes
+  [digest-name content]
+  (let [algo (MessageDigest/getInstance digest-name)]
+    (condp instance? content
+      String
+        (.update algo (.getBytes ^String content))
+      (Class/forName "[B")
+        (.update algo ^bytes content)
+      ByteBuffer
+        (.update algo ^ByteBuffer content)
+      ; TODO: support input streams
+      (throw (IllegalArgumentException.
+               (str "Don't know how to compute digest from "
+                    (class content)))))
+    (.digest algo)))
+
+
 (defmacro ^:private defhash
   "Defines a new convenience hashing function for the given algorithm and system
   digest name."
@@ -152,22 +173,19 @@
      ~(str "Calculates the " digest-name " digest of the given byte array or "
            "buffer and returns a multihash.")
      [~'content]
-     (let [algo# (MessageDigest/getInstance ~digest-name)]
-       (condp instance? ~'content
-         (Class/forName "[B")
-           (.update algo# ~(vary-meta 'content assoc :tag 'bytes))
-         java.nio.ByteBuffer
-           (.update algo# ~(vary-meta 'content assoc :tag 'java.nio.ByteBuffer))
-         ; TODO: support input streams
-         (throw (IllegalArgumentException.
-                  (str "Don't know how to compute digest from "
-                       (class ~'content)))))
-       (create ~algorithm (.digest algo#)))))
+     (create ~algorithm (digest-content ~digest-name ~'content))))
 
 
 (defhash :sha1     "SHA-1")
 (defhash :sha2-256 "SHA-256")
 (defhash :sha2-512 "SHA-512")
+
+
+(def functions
+  "Map of supported multihash functions."
+  {:sha1     sha1
+   :sha2-256 sha2-256
+   :sha2-512 sha2-512})
 
 
 

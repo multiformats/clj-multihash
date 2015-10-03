@@ -6,7 +6,8 @@
   (:import
     (java.io
       ByteArrayInputStream
-      IOException)))
+      IOException)
+    java.nio.ByteBuffer))
 
 
 (deftest app-specific-codes
@@ -61,16 +62,26 @@
 
 
 (deftest hashing-constructors
-  (let [content (.getBytes "foo bar baz")
-        mh1 (multihash/sha1 content)
-        mh2 (multihash/sha2-256 content)
-        mh3 (multihash/sha2-512 content)]
-    (is (= :sha1 (:algorithm mh1)))
-    (is (= :sha2-256 (:algorithm mh2)))
-    (is (= :sha2-512 (:algorithm mh3)))
-    (is (not= (._digest mh1) (._digest mh2)))
-    (is (not= (._digest mh1) (._digest mh3)))
-    (is (not= (._digest mh2) (._digest mh3)))))
+  (doseq [algorithm (keys multihash/functions)]
+    (testing (str (name algorithm) " hashing")
+      (let [hash-fn (multihash/functions algorithm)
+            content "foo bar baz"
+            mh1 (hash-fn content)
+            mh2 (hash-fn (.getBytes content))
+            mh3 (hash-fn (ByteBuffer/wrap (.getBytes content)))
+            ;mh4 (hash-fn (ByteArrayInputStream. (.getBytes content)))
+            ]
+        (is (= algorithm
+               (:algorithm mh1)
+               (:algorithm mh2)
+               (:algorithm mh3))
+            "Constructed multihash algorithms match")
+        (is (= (._digest mh1)
+               (._digest mh2)
+               (._digest mh3))
+            "Constructed multihash digests match")
+        (is (thrown? RuntimeException
+                     (hash-fn 123)))))))
 
 
 (deftest value-semantics
