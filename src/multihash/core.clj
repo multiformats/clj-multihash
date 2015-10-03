@@ -1,5 +1,6 @@
 (ns multihash.core
   "Core multihash type definition and helper methods."
+  (:refer-clojure :exclude [test])
   (:require
     [clojure.string :as str]
     [multihash.base58 :as b58]
@@ -186,6 +187,20 @@
   {:sha1     sha1
    :sha2-256 sha2-256
    :sha2-512 sha2-512})
+
+
+(defn test
+  "Determines whether a multihash is a correct identifier for some content by
+  recomputing the digest for the algorithm specified in the multihash. Returns
+  nil if either argument is nil, true if the digest matches, or false if not.
+  Throws an exception if the multihash specifies an unsupported algorithm."
+  [mhash content]
+  (when (and mhash content)
+    (if-let [hash-fn (get functions (:algorithm mhash))]
+      (= mhash (hash-fn content))
+      (throw (RuntimeException.
+               (str "No supported hashing function for algorithm "
+                    (:algorithm mhash) " to validate " mhash))))))
 
 
 

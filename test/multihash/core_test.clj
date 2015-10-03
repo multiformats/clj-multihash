@@ -190,3 +190,22 @@
       (let [stream (ByteArrayInputStream. (multihash/encode mhash))]
         (is (= mhash (multihash/decode stream))
             "Multihash round-trips through InputStream")))))
+
+
+(deftest content-validation
+  (let [content "baz bar foo"
+        mhash (multihash/sha1 content)]
+    (is (nil? (multihash/test nil nil)))
+    (is (nil? (multihash/test nil content)))
+    (is (nil? (multihash/test mhash nil)))
+    (is (true? (multihash/test mhash content))
+        "Correct multihash returns true")
+    (is (false? (multihash/test
+                  (multihash/create :sha1 "68a9f54521a5501230e9dc73")
+                  content))
+        "Incorrect multihash returns false")
+    (is (thrown-with-msg? RuntimeException #"^No supported hashing function"
+          (multihash/test
+            (multihash/create :blake2b "68a9f54521a5501230e9dc73")
+            content))
+        "Unsupported hash function cannot be validated")))
