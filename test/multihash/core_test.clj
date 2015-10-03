@@ -89,7 +89,9 @@
   (is (= "hash:sha1:0beec7b5ea3f0fdbc95d0dd47f3c5bc275da8a33"
          (str (multihash/create :sha1 "0beec7b5ea3f0fdbc95d0dd47f3c5bc275da8a33"))))
   (is (= "hash:sha2-256:2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae"
-         (str (multihash/create :sha2-256 "2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae")))))
+         (str (multihash/create :sha2-256 "2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae"))))
+  (is (= "hash:sha1:ea347f3c5b8f0fd07b5bc95d0beecdda3c275da3"
+         (pr-str (multihash/create :sha1 "ea347f3c5b8f0fd07b5bc95d0beecdda3c275da3")))))
 
 
 (deftest exercise-metadata
@@ -170,6 +172,10 @@
           "Encoded multihashes match expected hex")
       (is (= mhash (multihash/decode hex))
           "Hex decodes into expected multihash")
+      (let [b58 (multihash/base58 mhash)]
+        (is (string? b58) "Multihash encodes to a base-58 string")
+        (is (= mhash (multihash/decode b58))
+            "Multihash round-trips through Base58 encoding"))
       (let [stream (ByteArrayInputStream. (multihash/encode mhash))]
         (is (= mhash (multihash/decode stream))
             "Multihash round-trips through InputStream")))))
