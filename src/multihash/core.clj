@@ -8,6 +8,7 @@
     (java.io
       InputStream
       IOException)
+    java.nio.ByteBuffer
     java.security.MessageDigest))
 
 
@@ -85,9 +86,9 @@
   (compareTo [this that]
     (cond
       (= this that) 0
-      (< _code (._code that)) -1
-      (> _code (._code that)) 1
-      :else (compare _digest (._digest that))))
+      (< _code (._code ^Multihash that)) -1
+      (> _code (._code ^Multihash that)) 1
+      :else (compare _digest (._digest ^Multihash that))))
 
 
   clojure.lang.ILookup
@@ -148,11 +149,20 @@
   digest name."
   [algorithm digest-name]
   `(defn ~(symbol (name algorithm))
-     ~(str "Calculates the " digest-name " digest of the given byte array and "
-           "returns a multihash.")
-     [~(vary-meta 'content assoc :tag 'bytes)]
+     ~(str "Calculates the " digest-name " digest of the given byte array or "
+           "buffer and returns a multihash.")
+     [~'content]
      (let [algo# (MessageDigest/getInstance ~digest-name)]
-       (create ~algorithm (.digest algo# ~'content)))))
+       (condp instance? ~'content
+         (Class/forName "[B")
+           (.update algo# ~(vary-meta 'content assoc :tag 'bytes))
+         java.nio.ByteBuffer
+           (.update algo# ~(vary-meta 'content assoc :tag 'java.nio.ByteBuffer))
+         ; TODO: support input streams
+         (throw (IllegalArgumentException.
+                  (str "Don't know how to compute digest from "
+                       (class ~'content)))))
+       (create ~algorithm (.digest algo#)))))
 
 
 (defhash :sha1     "SHA-1")

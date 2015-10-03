@@ -2,8 +2,8 @@
   "Native Base-58 encoding implementation.")
 
 
-(def alphabet "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz")
-(def base 58N)
+(def ^:const alphabet "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz")
+(def ^:const base 58N)
 
 
 (defn- bytes->chars
@@ -26,6 +26,7 @@
   (->>
     (reverse data)
     (map vector (iterate (partial * base) 1))
+    ^clojure.lang.BigInt
     (reduce
       (fn [n [b c]]
         (let [v (.indexOf alphabet (str c))]
