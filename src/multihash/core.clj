@@ -159,7 +159,13 @@
         (.update algo ^bytes content)
       ByteBuffer
         (.update algo ^ByteBuffer content)
-      ; TODO: support input streams
+      InputStream
+        (let [buffer (byte-array 1024)]
+          (loop []
+            (let [n (.read ^InputStream content buffer 0 (count buffer))]
+              (when (pos? n)
+                (.update algo buffer 0 n)
+                (recur)))))
       (throw (IllegalArgumentException.
                (str "Don't know how to compute digest from "
                     (class content)))))

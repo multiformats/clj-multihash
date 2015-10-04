@@ -69,16 +69,17 @@
             mh1 (hash-fn content)
             mh2 (hash-fn (.getBytes content))
             mh3 (hash-fn (ByteBuffer/wrap (.getBytes content)))
-            ;mh4 (hash-fn (ByteArrayInputStream. (.getBytes content)))
-            ]
+            mh4 (hash-fn (ByteArrayInputStream. (.getBytes content)))]
         (is (= algorithm
                (:algorithm mh1)
                (:algorithm mh2)
-               (:algorithm mh3))
+               (:algorithm mh3)
+               (:algorithm mh4))
             "Constructed multihash algorithms match")
         (is (= (._digest mh1)
                (._digest mh2)
-               (._digest mh3))
+               (._digest mh3)
+               (._digest mh4))
             "Constructed multihash digests match")
         (is (thrown? RuntimeException
                      (hash-fn 123)))))))
