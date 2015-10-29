@@ -214,6 +214,7 @@
 
 (defn encode
   "Encodes a multihash into a binary representation."
+  ^bytes
   [mhash]
   (let [length (:length mhash)
         encoded (byte-array (+ length 2))]
@@ -225,6 +226,7 @@
 
 (defn hex
   "Encodes a multihash into a hexadecimal string."
+  ^String
   [mhash]
   (when mhash
     (hex/encode (encode mhash))))
@@ -232,6 +234,7 @@
 
 (defn base58
   "Encodes a multihash into a Base-58 string."
+  ^String
   [mhash]
   (when mhash
     (b58/encode (encode mhash))))
