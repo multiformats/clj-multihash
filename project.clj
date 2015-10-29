@@ -6,9 +6,11 @@
 
   :deploy-branches ["master"]
 
-  :plugins [[lein-cloverage "1.0.2"]]
+  :plugins
+  [[lein-cloverage "1.0.6"]]
 
-  :dependencies [[org.clojure/clojure "1.7.0"]]
+  :dependencies
+  [[org.clojure/clojure "1.7.0"]]
 
   :codox {:defaults {:doc/format :markdown}
           :output-dir "doc/api"
