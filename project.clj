@@ -12,7 +12,7 @@
   :dependencies
   [[org.clojure/clojure "1.7.0"]]
 
-  :codox {:defaults {:doc/format :markdown}
-          :output-dir "doc/api"
-          :src-dir-uri "https://github.com/greglook/clj-multihash/blob/master/"
-          :src-linenum-anchor-prefix "L"})
+  :codox {:metadata {:doc/format :markdown}
+          :source-uri "https://github.com/greglook/clj-multihash/blob/master/{filepath}#L{line}"
+          :doc-paths ["doc/extra"]
+          :output-path "doc/api"})
