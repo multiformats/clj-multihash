@@ -7,6 +7,10 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+...
+
+## [1.0.0] - 2015-10-29
+
 ### Added
 - Hash functions now support Strings, ByteBuffers, and InputStreams in addition
   to byte arrays.
@@ -42,6 +46,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 Initial project release.
 
-[Unreleased]: https://github.com/greglook/clj-multihash/compare/0.2.0...HEAD
+[Unreleased]: https://github.com/greglook/clj-multihash/compare/1.0.0...HEAD
+[1.0.0]: https://github.com/greglook/clj-multihash/compare/0.2.0...1.0.0
 [0.2.0]: https://github.com/greglook/clj-multihash/compare/0.1.2...0.2.0
 [0.1.2]: https://github.com/greglook/clj-multihash/compare/0.1.1...0.1.2
