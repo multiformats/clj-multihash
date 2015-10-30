@@ -1,4 +1,4 @@
-(defproject mvxcvi/multihash "0.3.0-SNAPSHOT"
+(defproject mvxcvi/multihash "1.1.0-SNAPSHOT"
   :description "Native Clojure implementation of the multihash standard."
   :url "https://github.com/greglook/clj-multihash"
   :license {:name "Public Domain"
