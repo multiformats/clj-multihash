@@ -1,5 +1,6 @@
 (ns multihash.core
   "Core multihash type definition and helper methods."
+  (:refer-clojure :exclude [test])
   (:require
     [clojure.string :as str]
     [multihash.base58 :as b58]
@@ -8,6 +9,7 @@
     (java.io
       InputStream
       IOException)
+    java.nio.ByteBuffer
     java.security.MessageDigest))
 
 
@@ -85,9 +87,9 @@
   (compareTo [this that]
     (cond
       (= this that) 0
-      (< _code (._code that)) -1
-      (> _code (._code that)) 1
-      :else (compare _digest (._digest that))))
+      (< _code (._code ^Multihash that)) -1
+      (> _code (._code ^Multihash that)) 1
+      :else (compare _digest (._digest ^Multihash that))))
 
 
   clojure.lang.ILookup
@@ -143,16 +145,42 @@
       (Multihash. (:code algo) digest nil))))
 
 
+(defn- digest-content
+  "Constructs a cryptographic digest for a given algorithm and content. Content
+  may be in the form of a raw byte array, a `ByteBuffer`, or a string. Returns
+  a byte array with the digest."
+  ^bytes
+  [digest-name content]
+  (let [algo (MessageDigest/getInstance digest-name)]
+    (condp instance? content
+      String
+        (.update algo (.getBytes ^String content))
+      (Class/forName "[B")
+        (.update algo ^bytes content)
+      ByteBuffer
+        (.update algo ^ByteBuffer content)
+      InputStream
+        (let [buffer (byte-array 1024)]
+          (loop []
+            (let [n (.read ^InputStream content buffer 0 (count buffer))]
+              (when (pos? n)
+                (.update algo buffer 0 n)
+                (recur)))))
+      (throw (IllegalArgumentException.
+               (str "Don't know how to compute digest from "
+                    (class content)))))
+    (.digest algo)))
+
+
 (defmacro ^:private defhash
   "Defines a new convenience hashing function for the given algorithm and system
   digest name."
   [algorithm digest-name]
   `(defn ~(symbol (name algorithm))
-     ~(str "Calculates the " digest-name " digest of the given byte array and "
-           "returns a multihash.")
-     [~(vary-meta 'content assoc :tag 'bytes)]
-     (let [algo# (MessageDigest/getInstance ~digest-name)]
-       (create ~algorithm (.digest algo# ~'content)))))
+     ~(str "Calculates the " digest-name " digest of the given byte array or "
+           "buffer and returns a multihash.")
+     [~'content]
+     (create ~algorithm (digest-content ~digest-name ~'content))))
 
 
 (defhash :sha1     "SHA-1")
@@ -160,11 +188,33 @@
 (defhash :sha2-512 "SHA-512")
 
 
+(def functions
+  "Map of supported multihash functions."
+  {:sha1     sha1
+   :sha2-256 sha2-256
+   :sha2-512 sha2-512})
+
+
+(defn test
+  "Determines whether a multihash is a correct identifier for some content by
+  recomputing the digest for the algorithm specified in the multihash. Returns
+  nil if either argument is nil, true if the digest matches, or false if not.
+  Throws an exception if the multihash specifies an unsupported algorithm."
+  [mhash content]
+  (when (and mhash content)
+    (if-let [hash-fn (get functions (:algorithm mhash))]
+      (= mhash (hash-fn content))
+      (throw (RuntimeException.
+               (str "No supported hashing function for algorithm "
+                    (:algorithm mhash) " to validate " mhash))))))
+
+
 
 ;; ## Encoding and Decoding
 
 (defn encode
   "Encodes a multihash into a binary representation."
+  ^bytes
   [mhash]
   (let [length (:length mhash)
         encoded (byte-array (+ length 2))]
@@ -176,6 +226,7 @@
 
 (defn hex
   "Encodes a multihash into a hexadecimal string."
+  ^String
   [mhash]
   (when mhash
     (hex/encode (encode mhash))))
@@ -183,6 +234,7 @@
 
 (defn base58
   "Encodes a multihash into a Base-58 string."
+  ^String
   [mhash]
   (when mhash
     (b58/encode (encode mhash))))
