@@ -36,12 +36,14 @@
   "Converts a byte array into a lowercase hexadecimal string."
   ^String
   [^bytes value]
-  (when (and value (pos? (alength value)))
-    (let [width (* 2 (alength value))
-          hex (-> (BigInteger. 1 value)
-                  (.toString 16)
-                  (str/lower-case))]
-      (pad-str width hex))))
+  (when value
+    (if (pos? (alength value))
+      (let [width (* 2 (alength value))
+            hex (-> (BigInteger. 1 value)
+                    (.toString 16)
+                    (str/lower-case))]
+        (pad-str width hex))
+      "")))
 
 
 (defn decode
@@ -49,10 +51,12 @@
   array is zero-padded to match the hex string length."
   ^bytes
   [^String value]
-  (when (and value (not (empty? value)))
-    (let [length (/ (count value) 2)
-          int-bytes (.toByteArray (BigInteger. value 16))]
-      (pad-bytes length int-bytes))))
+  (when value
+    (if (empty? value)
+      (byte-array 0)
+      (let [length (/ (count value) 2)
+            int-bytes (.toByteArray (BigInteger. value 16))]
+        (pad-bytes length int-bytes)))))
 
 
 (defn validate
