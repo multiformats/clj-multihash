@@ -129,6 +129,12 @@
 (ns-unmap *ns* '->Multihash)
 
 
+(def functions
+  "Map of supported multihash algorithm keys to hashing functions. Each function
+  should take a source of binary data as the argument and return a multihash."
+  {})
+
+
 (defn create
   "Constructs a new Multihash identifier. Accepts either a numeric algorithm
   code or a keyword name as the first argument. The digest may either by a byte
@@ -170,11 +176,6 @@
                (str "Don't know how to compute digest from "
                     (class content)))))
     (.digest algo)))
-
-
-(def functions
-  "Map of supported multihash functions."
-  {})
 
 
 (defmacro ^:private defhash
