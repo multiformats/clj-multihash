@@ -318,3 +318,24 @@
     (let [code (.read source)
           digest (read-stream-digest source)]
       (create code digest))))
+
+
+
+;; ## Utility Functions
+
+(defn select
+  "Selects multihash identifiers from a sequence based on some criteria.
+
+  Available options:
+
+  - `:algorithm`  only return hashes using this algorithm
+  - `:encoder`    function to encode multihashes with (default: `hex`)
+  - `:after`      start enumerating ids lexically following this string
+  - `:prefix`     only return ids starting with the given string"
+  [opts ids]
+  (let [{:keys [algorithm prefix encoder], :or {encoder hex}} opts
+        after (:after opts prefix)]
+    (cond->> ids
+      algorithm  (filter #(= algorithm (:algorithm %)))
+      after      (drop-while #(pos? (compare after (encoder %))))
+      prefix     (take-while #(.startsWith ^String (encoder %) prefix)))))
