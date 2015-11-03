@@ -172,27 +172,28 @@
     (.digest algo)))
 
 
+(def functions
+  "Map of supported multihash functions."
+  {})
+
+
 (defmacro ^:private defhash
   "Defines a new convenience hashing function for the given algorithm and system
   digest name."
   [algorithm digest-name]
-  `(defn ~(symbol (name algorithm))
-     ~(str "Calculates the " digest-name " digest of the given byte array or "
-           "buffer and returns a multihash.")
-     [~'content]
-     (create ~algorithm (digest-content ~digest-name ~'content))))
+  (let [fn-sym (symbol (name algorithm))]
+    `(do
+       (defn ~fn-sym
+         ~(str "Calculates the " digest-name " digest of the given byte array or "
+               "buffer and returns a multihash.")
+         [~'content]
+         (create ~algorithm (digest-content ~digest-name ~'content)))
+       (alter-var-root #'functions assoc ~algorithm ~fn-sym))))
 
 
 (defhash :sha1     "SHA-1")
 (defhash :sha2-256 "SHA-256")
 (defhash :sha2-512 "SHA-512")
-
-
-(def functions
-  "Map of supported multihash functions."
-  {:sha1     sha1
-   :sha2-256 sha2-256
-   :sha2-512 sha2-512})
 
 
 
