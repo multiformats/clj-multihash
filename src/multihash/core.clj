@@ -195,20 +195,6 @@
    :sha2-512 sha2-512})
 
 
-(defn test
-  "Determines whether a multihash is a correct identifier for some content by
-  recomputing the digest for the algorithm specified in the multihash. Returns
-  nil if either argument is nil, true if the digest matches, or false if not.
-  Throws an exception if the multihash specifies an unsupported algorithm."
-  [mhash content]
-  (when (and mhash content)
-    (if-let [hash-fn (get functions (:algorithm mhash))]
-      (= mhash (hash-fn content))
-      (throw (RuntimeException.
-               (str "No supported hashing function for algorithm "
-                    (:algorithm mhash) " to validate " mhash))))))
-
-
 
 ;; ## Encoding and Decoding
 
@@ -322,6 +308,20 @@
 
 
 ;; ## Utility Functions
+
+(defn test
+  "Determines whether a multihash is a correct identifier for some content by
+  recomputing the digest for the algorithm specified in the multihash. Returns
+  nil if either argument is nil, true if the digest matches, or false if not.
+  Throws an exception if the multihash specifies an unsupported algorithm."
+  [mhash content]
+  (when (and mhash content)
+    (if-let [hash-fn (get functions (:algorithm mhash))]
+      (= mhash (hash-fn content))
+      (throw (RuntimeException.
+               (str "No supported hashing function for algorithm "
+                    (:algorithm mhash) " to validate " mhash))))))
+
 
 (defn select
   "Selects multihash identifiers from a sequence based on some criteria.
