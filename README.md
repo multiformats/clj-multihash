@@ -1,6 +1,8 @@
 clj-multihash
 =============
 
+[![Join the chat at https://gitter.im/greglook/clj-multihash](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/greglook/clj-multihash?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 [![Build Status](https://travis-ci.org/greglook/clj-multihash.svg?branch=develop)](https://travis-ci.org/greglook/clj-multihash)
 [![Coverage Status](https://coveralls.io/repos/greglook/clj-multihash/badge.svg?branch=develop)](https://coveralls.io/r/greglook/clj-multihash?branch=develop)
 [![Dependency Status](https://www.versioneye.com/clojure/mvxcvi:multihash/badge.svg)](https://www.versioneye.com/clojure/mvxcvi:multihash)
