@@ -59,9 +59,11 @@
 
 ;; Multihash identifiers have two properties:
 ;;
-;; - `:code` is a numeric code for an algorithm entry in `algorithm-codes` or an
+;; - `_code` is a numeric code for an algorithm entry in `algorithm-codes` or an
 ;;   application-specific algorithm code.
-;; - `:digest` is a string holding the hex-encoded algorithm output.
+;; - `_digest` is a string holding the hex-encoded algorithm output.
+;;
+;; Digest values also support metadata.
 (deftype Multihash
   [^long _code ^String _digest _meta]
 
@@ -100,18 +102,16 @@
       :algorithm (:name (get-algorithm _code))
       :length (/ (count _digest) 2)
       :digest (hex/decode _digest)
+      :hex-digest _digest
       not-found))
 
   (valAt [this k]
     (.valAt this k nil))
 
 
-  clojure.lang.IMeta
+  clojure.lang.IObj
 
   (meta [_] _meta)
-
-
-  clojure.lang.IObj
 
   (withMeta [_ meta-map]
     (Multihash. _code _digest meta-map)))
