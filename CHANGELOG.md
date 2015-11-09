@@ -7,7 +7,12 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
-...
+### Added
+- Make multihash hex digest available directly via the `:hex-digest` keyword.
+
+### Changed
+- `hex/encode` returns an empty string for empty byte arrays instead of nil.
+- `hex/decode` returns an empty byte array for empty strings instead of nil.
 
 ## [1.0.0] - 2015-10-29
 
