@@ -2865,7 +2865,7 @@ net.brehaut.ClojureTools = (function (SH) {
     build_tree: build_tree
   };
 })(SyntaxHighlighter);
-</script><title>mvxcvi/multihash -- Marginalia</title></head><body><table><tr><td class="docs"><div class="header"><h1 class="project-name"><a href="https://github.com/greglook/clj-multihash">mvxcvi/multihash</a></h1><h2 class="project-version">1.0.0</h2><br /><p>Native Clojure implementation of the multihash standard.</p>
+</script><title>mvxcvi/multihash -- Marginalia</title></head><body><table><tr><td class="docs"><div class="header"><h1 class="project-name"><a href="https://github.com/greglook/clj-multihash">mvxcvi/multihash</a></h1><h2 class="project-version">1.1.0</h2><br /><p>Native Clojure implementation of the multihash standard.</p>
 </div><div class="dependencies"><h3>dependencies</h3><table><tr><td class="dep-name">org.clojure/clojure</td><td class="dotted"><hr /></td><td class="dep-version">1.7.0</td></tr></table></div></td><td class="codes" style="text-align: center; vertical-align: middle;color: #666;padding-right:20px"><br /><br /><br />(this space intentionally left almost blank)</td></tr><tr><td class="docs"><div class="toc"><a name="toc"><h3>namespaces</h3></a><ul><li><a href="#multihash.base58">multihash.base58</a></li><li><a href="#multihash.core">multihash.core</a></li><li><a href="#multihash.hex">multihash.hex</a></li></ul></div></td><td class="codes">&nbsp;</td></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#multihash.base58" name="multihash.base58"><h1 class="project-name">multihash.base58</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>Native Base-58 encoding implementation.</p>
 </td><td class="codes"><pre class="brush: clojure">(ns multihash.base58)</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(def ^:const alphabet &quot;123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz&quot;)
@@ -2968,10 +2968,12 @@ net.brehaut.ClojureTools = (function (SH) {
 </td><td class="codes"></td></tr><tr><td class="docs"><p>Multihash identifiers have two properties:</p>
 
 <ul>
-<li><code>:code</code> is a numeric code for an algorithm entry in <code>algorithm-codes</code> or an
+<li><code>_code</code> is a numeric code for an algorithm entry in <code>algorithm-codes</code> or an
 application-specific algorithm code.</li>
-<li><code>:digest</code> is a string holding the hex-encoded algorithm output.</li>
+<li><code>_digest</code> is a string holding the hex-encoded algorithm output.</li>
 </ul>
+
+<p>Digest values also support metadata.</p>
 </td><td class="codes"><pre class="brush: clojure">(deftype Multihash
   [^long _code ^String _digest _meta]
   Object
@@ -3000,19 +3002,22 @@ application-specific algorithm code.</li>
       :algorithm (:name (get-algorithm _code))
       :length (/ (count _digest) 2)
       :digest (hex/decode _digest)
+      :hex-digest _digest
       not-found))
   (valAt [this k]
     (.valAt this k nil))
-  clojure.lang.IMeta
-  (meta [_] _meta)
   clojure.lang.IObj
+  (meta [_] _meta)
   (withMeta [_ meta-map]
     (Multihash. _code _digest meta-map)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defmethod print-method Multihash
   [v ^java.io.Writer w]
   (.write w (str v)))</pre></td></tr><tr><td class="docs"><h2>Constructors</h2>
 </td><td class="codes"></td></tr><tr><td class="docs"><p>Remove automatic constructor function.</p>
-</td><td class="codes"><pre class="brush: clojure">(ns-unmap *ns* '-&gt;Multihash)</pre></td></tr><tr><td class="docs"><p>Constructs a new Multihash identifier. Accepts either a numeric algorithm
+</td><td class="codes"><pre class="brush: clojure">(ns-unmap *ns* '-&gt;Multihash)</pre></td></tr><tr><td class="docs"><p>Map of supported multihash algorithm keys to hashing functions. Each function
+  should take a source of binary data as the argument and return a multihash.</p>
+</td><td class="codes"><pre class="brush: clojure">(def functions
+  {})</pre></td></tr><tr><td class="docs"><p>Constructs a new Multihash identifier. Accepts either a numeric algorithm
   code or a keyword name as the first argument. The digest may either by a byte
   array or a hex string.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn create
@@ -3053,29 +3058,17 @@ application-specific algorithm code.</li>
   digest name.</p>
 </td><td class="codes"><pre class="brush: clojure">(defmacro ^:private defhash
   [algorithm digest-name]
-  `(defn ~(symbol (name algorithm))
-     ~(str &quot;Calculates the &quot; digest-name &quot; digest of the given byte array or &quot;
-           &quot;buffer and returns a multihash.&quot;)
-     [~'content]
-     (create ~algorithm (digest-content ~digest-name ~'content))))</pre></td></tr><tr><td class="docs">
+  (let [fn-sym (symbol (name algorithm))]
+    `(do
+       (defn ~fn-sym
+         ~(str &quot;Calculates the &quot; digest-name &quot; digest of the given byte array or &quot;
+               &quot;buffer and returns a multihash.&quot;)
+         [~'content]
+         (create ~algorithm (digest-content ~digest-name ~'content)))
+       (alter-var-root #'functions assoc ~algorithm ~fn-sym))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defhash :sha1     &quot;SHA-1&quot;)
 (defhash :sha2-256 &quot;SHA-256&quot;)
-(defhash :sha2-512 &quot;SHA-512&quot;)</pre></td></tr><tr><td class="docs"><p>Map of supported multihash functions.</p>
-</td><td class="codes"><pre class="brush: clojure">(def functions
-  {:sha1     sha1
-   :sha2-256 sha2-256
-   :sha2-512 sha2-512})</pre></td></tr><tr><td class="docs"><p>Determines whether a multihash is a correct identifier for some content by
-  recomputing the digest for the algorithm specified in the multihash. Returns
-  nil if either argument is nil, true if the digest matches, or false if not.
-  Throws an exception if the multihash specifies an unsupported algorithm.</p>
-</td><td class="codes"><pre class="brush: clojure">(defn test
-  [mhash content]
-  (when (and mhash content)
-    (if-let [hash-fn (get functions (:algorithm mhash))]
-      (= mhash (hash-fn content))
-      (throw (RuntimeException.
-               (str &quot;No supported hashing function for algorithm &quot;
-                    (:algorithm mhash) &quot; to validate &quot; mhash))))))</pre></td></tr><tr><td class="docs"><h2>Encoding and Decoding</h2>
+(defhash :sha2-512 &quot;SHA-512&quot;)</pre></td></tr><tr><td class="docs"><h2>Encoding and Decoding</h2>
 </td><td class="codes"></td></tr><tr><td class="docs"><p>Encodes a multihash into a binary representation.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn encode
   ^bytes
@@ -3163,7 +3156,19 @@ application-specific algorithm code.</li>
     [source]
     (let [code (.read source)
           digest (read-stream-digest source)]
-      (create code digest))))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#multihash.hex" name="multihash.hex"><h1 class="project-name">multihash.hex</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>Functions to encode and decode bytes as hexadecimal.</p>
+      (create code digest))))</pre></td></tr><tr><td class="docs"><h2>Utility Functions</h2>
+</td><td class="codes"></td></tr><tr><td class="docs"><p>Determines whether a multihash is a correct identifier for some content by
+  recomputing the digest for the algorithm specified in the multihash. Returns
+  nil if either argument is nil, true if the digest matches, or false if not.
+  Throws an exception if the multihash specifies an unsupported algorithm.</p>
+</td><td class="codes"><pre class="brush: clojure">(defn test
+  [mhash content]
+  (when (and mhash content)
+    (if-let [hash-fn (get functions (:algorithm mhash))]
+      (= mhash (hash-fn content))
+      (throw (RuntimeException.
+               (str &quot;No supported hashing function for algorithm &quot;
+                    (:algorithm mhash) &quot; to validate &quot; mhash))))))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#multihash.hex" name="multihash.hex"><h1 class="project-name">multihash.hex</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>Functions to encode and decode bytes as hexadecimal.</p>
 </td><td class="codes"><pre class="brush: clojure">(ns multihash.hex
   (:require
     [clojure.string :as str]))</pre></td></tr><tr><td class="docs"><p>Pads a string with leading zeroes up to the given width.</p>
@@ -3192,20 +3197,24 @@ application-specific algorithm code.</li>
 </td><td class="codes"><pre class="brush: clojure">(defn encode
   ^String
   [^bytes value]
-  (when (and value (pos? (alength value)))
-    (let [width (* 2 (alength value))
-          hex (-&gt; (BigInteger. 1 value)
-                  (.toString 16)
-                  (str/lower-case))]
-      (pad-str width hex))))</pre></td></tr><tr><td class="docs"><p>Parses a hexadecimal string into a byte array. Ensures that the resulting
+  (when value
+    (if (pos? (alength value))
+      (let [width (* 2 (alength value))
+            hex (-&gt; (BigInteger. 1 value)
+                    (.toString 16)
+                    (str/lower-case))]
+        (pad-str width hex))
+      &quot;&quot;)))</pre></td></tr><tr><td class="docs"><p>Parses a hexadecimal string into a byte array. Ensures that the resulting
   array is zero-padded to match the hex string length.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn decode
   ^bytes
   [^String value]
-  (when (and value (not (empty? value)))
-    (let [length (/ (count value) 2)
-          int-bytes (.toByteArray (BigInteger. value 16))]
-      (pad-bytes length int-bytes))))</pre></td></tr><tr><td class="docs"><p>Checks a string to determine whether it's well-formed hexadecimal digest.
+  (when value
+    (if (empty? value)
+      (byte-array 0)
+      (let [length (/ (count value) 2)
+            int-bytes (.toByteArray (BigInteger. value 16))]
+        (pad-bytes length int-bytes)))))</pre></td></tr><tr><td class="docs"><p>Checks a string to determine whether it's well-formed hexadecimal digest.
   Returns an error message if the argument is invalid.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn validate
   ^String
