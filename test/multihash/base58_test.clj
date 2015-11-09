@@ -1,16 +1,8 @@
 (ns multihash.base58-test
   (:require
-    [clojure.string :as str]
     [clojure.test :refer :all]
-    [multihash.base58 :as b58])
-  (:import
-    java.security.SecureRandom))
-
-
-(defn bytes=
-  [a b]
-  (and (= (count a) (count b))
-       (every? true? (map = a b))))
+    [multihash.base58 :as b58]
+    [multihash.test-utils :refer :all]))
 
 
 (deftest encoding-test
@@ -33,9 +25,7 @@
 
 (deftest reflexive-encoding
   (dotimes [i 100]
-    (let [size (rand-int 30)
-          data (byte-array size)]
-      (.nextBytes (SecureRandom.) data)
+    (let [data (random-bytes 30)]
       (is (bytes= data (b58/decode (b58/encode data)))
           (str "Base58 coding is reflexive for "
                (.toString (BigInteger. 1 data) 16))))))

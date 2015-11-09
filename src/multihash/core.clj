@@ -59,9 +59,11 @@
 
 ;; Multihash identifiers have two properties:
 ;;
-;; - `:code` is a numeric code for an algorithm entry in `algorithm-codes` or an
+;; - `_code` is a numeric code for an algorithm entry in `algorithm-codes` or an
 ;;   application-specific algorithm code.
-;; - `:digest` is a string holding the hex-encoded algorithm output.
+;; - `_digest` is a string holding the hex-encoded algorithm output.
+;;
+;; Digest values also support metadata.
 (deftype Multihash
   [^long _code ^String _digest _meta]
 
@@ -100,18 +102,16 @@
       :algorithm (:name (get-algorithm _code))
       :length (/ (count _digest) 2)
       :digest (hex/decode _digest)
+      :hex-digest _digest
       not-found))
 
   (valAt [this k]
     (.valAt this k nil))
 
 
-  clojure.lang.IMeta
+  clojure.lang.IObj
 
   (meta [_] _meta)
-
-
-  clojure.lang.IObj
 
   (withMeta [_ meta-map]
     (Multihash. _code _digest meta-map)))
@@ -127,6 +127,12 @@
 
 ;; Remove automatic constructor function.
 (ns-unmap *ns* '->Multihash)
+
+
+(def functions
+  "Map of supported multihash algorithm keys to hashing functions. Each function
+  should take a source of binary data as the argument and return a multihash."
+  {})
 
 
 (defn create
@@ -176,37 +182,19 @@
   "Defines a new convenience hashing function for the given algorithm and system
   digest name."
   [algorithm digest-name]
-  `(defn ~(symbol (name algorithm))
-     ~(str "Calculates the " digest-name " digest of the given byte array or "
-           "buffer and returns a multihash.")
-     [~'content]
-     (create ~algorithm (digest-content ~digest-name ~'content))))
+  (let [fn-sym (symbol (name algorithm))]
+    `(do
+       (defn ~fn-sym
+         ~(str "Calculates the " digest-name " digest of the given byte array or "
+               "buffer and returns a multihash.")
+         [~'content]
+         (create ~algorithm (digest-content ~digest-name ~'content)))
+       (alter-var-root #'functions assoc ~algorithm ~fn-sym))))
 
 
 (defhash :sha1     "SHA-1")
 (defhash :sha2-256 "SHA-256")
 (defhash :sha2-512 "SHA-512")
-
-
-(def functions
-  "Map of supported multihash functions."
-  {:sha1     sha1
-   :sha2-256 sha2-256
-   :sha2-512 sha2-512})
-
-
-(defn test
-  "Determines whether a multihash is a correct identifier for some content by
-  recomputing the digest for the algorithm specified in the multihash. Returns
-  nil if either argument is nil, true if the digest matches, or false if not.
-  Throws an exception if the multihash specifies an unsupported algorithm."
-  [mhash content]
-  (when (and mhash content)
-    (if-let [hash-fn (get functions (:algorithm mhash))]
-      (= mhash (hash-fn content))
-      (throw (RuntimeException.
-               (str "No supported hashing function for algorithm "
-                    (:algorithm mhash) " to validate " mhash))))))
 
 
 
@@ -318,3 +306,20 @@
     (let [code (.read source)
           digest (read-stream-digest source)]
       (create code digest))))
+
+
+
+;; ## Utility Functions
+
+(defn test
+  "Determines whether a multihash is a correct identifier for some content by
+  recomputing the digest for the algorithm specified in the multihash. Returns
+  nil if either argument is nil, true if the digest matches, or false if not.
+  Throws an exception if the multihash specifies an unsupported algorithm."
+  [mhash content]
+  (when (and mhash content)
+    (if-let [hash-fn (get functions (:algorithm mhash))]
+      (= mhash (hash-fn content))
+      (throw (RuntimeException.
+               (str "No supported hashing function for algorithm "
+                    (:algorithm mhash) " to validate " mhash))))))

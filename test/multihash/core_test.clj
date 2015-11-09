@@ -179,7 +179,7 @@
       (is (= code (:code mhash)))
       (is (= algorithm (:algorithm mhash)))
       (is (= length (:length mhash)))
-      (is (= digest (._digest mhash)))
+      (is (= digest (:hex-digest mhash)))
       (is (= hex (multihash/hex mhash))
           "Encoded multihashes match expected hex")
       (is (= mhash (multihash/decode hex))
