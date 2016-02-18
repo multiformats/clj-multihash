@@ -4,34 +4,32 @@
     [clojure.string :as str]))
 
 
-(defn- pad-bytes
-  "Pads a byte array with leading zeroes (or trims them) to ensure it has the
-  given length. Returns the same array if the length is already correct, or a
-  new resized array if not."
-  [width ^bytes array]
-  (let [array-length (alength array)]
-    (if (= width array-length)
-      array
-      (let [array' (byte-array width)]
-        (if (< array-length width)
-          (System/arraycopy array 0 array' (- width array-length) array-length)
-          (System/arraycopy array (- array-length width) array' 0 width))
-        array'))))
+(defn- byte->hex
+  "Converts a single byte value to a two-character hex string."
+  [value]
+  (let [hex #?(:clj (Integer/toHexString (if (neg? value) (+ 256 value) value))
+               :cljs (.toString value 16))]
+    (if (= 1 (count hex))
+      (str "0" hex)
+      hex)))
+
+
+(defn- hex->byte
+  "Converts a two-character hex string into a byte value."
+  [hex]
+  #?(:clj (let [value (Integer/parseInt hex 16)]
+            (if (< 127 value) (- value 256) value))
+     :cljs (js/parseInt hex 16)))
 
 
 (defn encode
   "Converts a byte array into a lowercase hexadecimal string. Returns nil for
   empty inputs."
   ^String
-  [^bytes value]
-  (when (and value (pos? (alength value)))
-    (->> (range (alength value))
-         (map #(let [b (aget value %)
-                     hex #?(:clj (Integer/toHexString (if (neg? b) (+ 256 b) b))
-                            :cljs (.toString b 16))]
-                 (if (= 1 (count hex))
-                   (str "0" hex)
-                   hex)))
+  [^bytes data]
+  (when (and data (pos? (alength data)))
+    (->> (range (alength data))
+         (map #(byte->hex (aget data %)))
          (str/join))))
 
 
@@ -39,13 +37,16 @@
   "Parses a hexadecimal string into a byte array. Ensures that the resulting
   array is zero-padded to match the hex string length."
   ^bytes
-  [^String value]
-  (when value
-    (if (empty? value)
-      (byte-array 0)
-      (let [length (/ (count value) 2)
-            int-bytes (.toByteArray (BigInteger. value 16))]
-        (pad-bytes length int-bytes)))))
+  [^String data]
+  (when-not (empty? data)
+    (let [length (/ (count data) 2)
+          data #?(:clj (byte-array length)
+                  :cljs (js/Uint8Array. (js/ArrayBuffer. length)))]
+      (dotimes [i length]
+        (let [hex (subs data (* 2 i) (* 2 (inc i)))
+              b (hex->byte hex)]
+          (aset data i (byte b))))
+      data)))
 
 
 (defn validate
