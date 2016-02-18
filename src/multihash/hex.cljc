@@ -4,19 +4,6 @@
     [clojure.string :as str]))
 
 
-(defn- pad-str
-  "Pads a string with leading zeroes up to the given width."
-  [width value]
-  (let [string (str value)]
-    (if (<= width (count string))
-      string
-      (-> width
-          (- (count string))
-          (repeat "0")
-          (str/join)
-          (str string)))))
-
-
 (defn- pad-bytes
   "Pads a byte array with leading zeroes (or trims them) to ensure it has the
   given length. Returns the same array if the length is already correct, or a
@@ -33,17 +20,19 @@
 
 
 (defn encode
-  "Converts a byte array into a lowercase hexadecimal string."
+  "Converts a byte array into a lowercase hexadecimal string. Returns nil for
+  empty inputs."
   ^String
   [^bytes value]
-  (when value
-    (if (pos? (alength value))
-      (let [width (* 2 (alength value))
-            hex (-> (BigInteger. 1 value)
-                    (.toString 16)
-                    (str/lower-case))]
-        (pad-str width hex))
-      "")))
+  (when (and value (pos? (alength value)))
+    (->> (range (alength value))
+         (map #(let [b (aget value %)
+                     hex #?(:clj (Integer/toHexString (if (neg? b) (+ 256 b) b))
+                            :cljs (.toString b 16))]
+                 (if (= 1 (count hex))
+                   (str "0" hex)
+                   hex)))
+         (str/join))))
 
 
 (defn decode

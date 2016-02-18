@@ -6,9 +6,9 @@
 
 
 (deftest encoding-test
-  (is (= ""   (hex/encode (byte-array 0)))
-      "empty byte array encodes as empty string")
-  (is (= "00"  (hex/encode (byte-array 1)))
+  (is (nil? (hex/encode (byte-array 0)))
+      "empty byte array encodes as nil")
+  (is (= "00" (hex/encode (byte-array 1)))
       "single zero byte encodes as two zero chars")
   (is (= "007f" (hex/encode (doto (byte-array 2)
                               (aset-byte 1 127))))))
@@ -22,8 +22,10 @@
 
 
 (deftest reflexive-encoding
-  (dotimes [i 100]
-    (let [data (random-bytes 30)]
-      (is (bytes= data (hex/decode (hex/encode data)))
+  (dotimes [i 10]
+    (let [data (random-bytes 30)
+          encoded (hex/encode data)
+          decoded (hex/decode encoded)]
+      (is (bytes= data decoded)
           (str "Hex coding is reflexive for "
                (.toString (BigInteger. 1 data) 16))))))
