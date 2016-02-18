@@ -6,15 +6,20 @@
 
   :deploy-branches ["master"]
 
+  :aliases {"node-repl" ["with-profile" "+cljs" "run" "-m" "clojure.main" "node_repl.clj"]}
+
   :plugins
   [[lein-cloverage "1.0.6"]]
 
   :dependencies
-  [[org.clojure/clojure "1.7.0"]]
+  [[org.clojure/clojure "1.8.0"]]
 
   :codox {:metadata {:doc/format :markdown}
           :source-uri "https://github.com/greglook/clj-multihash/blob/master/{filepath}#L{line}"
           :doc-paths ["doc/extra"]
           :output-path "doc/api"}
 
-  :whidbey {:tag-types {'multihash.core.Multihash {'data/hash 'multihash.core/base58}}})
+  :whidbey {:tag-types {'multihash.core.Multihash {'data/hash 'multihash.core/base58}}}
+
+  :profiles {:cljs {:dependencies
+                    [[org.clojure/clojurescript "1.7.170"]]}})
