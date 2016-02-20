@@ -3,8 +3,8 @@
   (:refer-clojure :exclude [test])
   (:require
     [clojure.string :as str]
-    [multihash.base58 :as b58]
-    [multihash.hex :as hex])
+    [alphabase.base58 :as b58]
+    [alphabase.hex :as hex])
   (:import
     (java.io
       InputStream

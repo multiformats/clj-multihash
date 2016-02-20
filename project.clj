@@ -12,7 +12,8 @@
   [[lein-cloverage "1.0.6"]]
 
   :dependencies
-  [[org.clojure/clojure "1.8.0"]]
+  [[mvxcvi/alphabase "0.1.0"]
+   [org.clojure/clojure "1.8.0"]]
 
   :codox {:metadata {:doc/format :markdown}
           :source-uri "https://github.com/greglook/clj-multihash/blob/master/{filepath}#L{line}"
