@@ -68,11 +68,14 @@
 (deftype Multihash
   [^long _code ^String _digest _meta]
 
+  ; Ref: https://github.com/clojure/clojurescript/blob/master/src/main/cljs/cljs/core.cljs#L430
+
   Object
 
   (toString [this]
     (str "hash:" (name (:name (get-algorithm _code))) \: _digest))
 
+  ; IEquiv (-equiv [this other])
   (equals [this that]
     (cond
       (identical? this that) true
@@ -81,10 +84,12 @@
              (= _digest (._digest ^Multihash that)))
       :else false))
 
+  ; IHash (-hash [this])
   (hashCode [this]
     (hash-combine _code _digest))
 
 
+  ; IComparable (-compare [x y])
   Comparable
 
   (compareTo [this that]
@@ -95,6 +100,7 @@
       :else (compare _digest (._digest ^Multihash that))))
 
 
+  ; ILookup (-lookup [this k] [this k not-found])
   clojure.lang.ILookup
 
   (valAt [this k not-found]
@@ -112,8 +118,10 @@
 
   clojure.lang.IObj
 
+  ; IMeta (-meta [this])
   (meta [_] _meta)
 
+  ; IWithMeta (-with-meta [this meta])
   (withMeta [_ meta-map]
     (Multihash. _code _digest meta-map)))
 
