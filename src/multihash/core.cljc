@@ -2,15 +2,16 @@
   "Core multihash type definition and helper methods."
   (:refer-clojure :exclude [test])
   (:require
-    [clojure.string :as str]
     [alphabase.base58 :as b58]
-    [alphabase.hex :as hex])
-  (:import
-    (java.io
-      InputStream
-      IOException)
-    java.nio.ByteBuffer
-    java.security.MessageDigest))
+    [alphabase.bytes :as bytes]
+    [alphabase.hex :as hex]
+    [clojure.string :as str])
+  #?(:clj (:import
+            (java.io
+              InputStream
+              IOException)
+            java.nio.ByteBuffer
+            java.security.MessageDigest)))
 
 
 ;; ## Hash Function Algorithms
@@ -121,14 +122,6 @@
 (ns-unmap *ns* '->Multihash)
 
 
-(defmethod print-method Multihash
-  [v ^java.io.Writer w]
-  (.write w (str v)))
-
-
-
-;; ## Constructors
-
 (defn create
   "Constructs a new Multihash identifier. Accepts either a numeric algorithm
   code or a keyword name as the first argument. The digest may either by a byte
@@ -143,12 +136,6 @@
       (when-let [err (hex/validate digest)]
         (throw (IllegalArgumentException. err)))
       (Multihash. (:code algo) digest nil))))
-
-
-;; Define some hashing constructors implemented on the JVM.
-#?(:clj (do (digest/defhash :sha1     "SHA-1")
-            (digest/defhash :sha2-256 "SHA-256")
-            (digest/defhash :sha2-512 "SHA-512")))
 
 
 
@@ -260,20 +247,3 @@
     (let [code (.read source)
           digest (read-stream-digest source)]
       (create code digest))))
-
-
-
-;; ## Utility Functions
-
-(defn test
-  "Determines whether a multihash is a correct identifier for some content by
-  recomputing the digest for the algorithm specified in the multihash. Returns
-  nil if either argument is nil, true if the digest matches, or false if not.
-  Throws an exception if the multihash specifies an unsupported algorithm."
-  [mhash content]
-  (when (and mhash content)
-    (if-let [hash-fn (get functions (:algorithm mhash))]
-      (= mhash (hash-fn content))
-      (throw (RuntimeException.
-               (str "No supported hashing function for algorithm "
-                    (:algorithm mhash) " to validate " mhash))))))

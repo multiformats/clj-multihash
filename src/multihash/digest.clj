@@ -1,5 +1,7 @@
 (ns multihash.digest
   "Digest functions for creating new multihash constructors."
+  (:require
+    [multihash.core :as multihash])
   (:import
     (java.io
       InputStream
@@ -51,5 +53,25 @@
          ~(str "Calculates the " digest-name " digest of the given byte array or "
                "buffer and returns a multihash.")
          [~'content]
-         (create ~algorithm (digest-content ~digest-name ~'content)))
+         (multihash/create ~algorithm (digest-content ~digest-name ~'content)))
        (alter-var-root #'functions assoc ~algorithm ~fn-sym))))
+
+
+(defhash :sha1     "SHA-1")
+(defhash :sha2-256 "SHA-256")
+(defhash :sha2-512 "SHA-512")
+
+
+(defn test
+  "Determines whether a multihash is a correct identifier for some content by
+  recomputing the digest for the algorithm specified in the multihash. Returns
+  nil if either argument is nil, true if the digest matches, or false if not.
+  Throws an exception if the multihash specifies an unsupported algorithm."
+  [mhash content]
+  (when (and mhash content)
+    (if-let [hash-fn (get functions (:algorithm mhash))]
+      (= mhash (hash-fn content))
+      (throw (ex-info
+               (format "No supported hashing function for algorithm %s to validate %s"
+                       (:algorithm mhash) mhash)
+               {:algorithm (:algorithm mhash)})))))
