@@ -170,23 +170,28 @@
 
 
 (defn decode-array
-  "Decodes a byte array directly into multihash. Throws `IOException` on
-  malformed input, and `IllegalArgumentException` if the multihash is invalid."
+  "Decodes a byte array directly into multihash. Throws `ex-info` with a `:type`
+  of `:multihash/bad-input` if the data is malformed or invalid."
   [^bytes encoded]
-  (when (< (alength encoded) 3)
-    (throw (IOException.
-             (str "Cannot read multihash from byte array: " (alength encoded)
-                  " is less than the minimum of 3"))))
+  (let [encoded-size (alength encoded)
+        min-size 3]
+    (when (< encoded-size min-size)
+      (throw (ex-info
+               (str "Cannot read multihash from byte array: " encoded-size
+                    " is less than the minimum of " min-size)
+               {:type :multihash/bad-input}))))
   (let [code (aget encoded 0)
         length (aget encoded 1)
         payload (- (alength encoded) 2)]
     (when-not (pos? length)
-      (throw (IOException.
-               (str "Encoded length " length " is invalid"))))
+      (throw (ex-info
+               (str "Encoded length " length " is invalid")
+               {:type :multihash/bad-input})))
     (when (< payload length)
-      (throw (IOException.
+      (throw (ex-info
                (str "Encoded digest length " length " exceeds actual "
-                    "remaining payload of " payload " bytes"))))
+                    "remaining payload of " payload " bytes")
+               {:type :multihash/bad-input})))
     (let [digest (byte-array length)]
       (System/arraycopy encoded 2 digest 0 length)
       (create code digest))))
@@ -200,9 +205,9 @@
   [^InputStream input]
   (let [length (.read input)]
     (when-not (pos? length)
-      (throw (IOException.
-               (format "Byte %02x is not a valid digest length."
-                       length))))
+      (throw (ex-info
+               (format "Byte %02x is not a valid digest length." length)
+               {:type :multihash/bad-input})))
     (let [digest (byte-array length)]
       (loop [offset 0
              remaining length]
