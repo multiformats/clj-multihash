@@ -6,7 +6,7 @@
 
   :deploy-branches ["master"]
 
-  :aliases {"node-repl" ["with-profile" "+cljs" "run" "-m" "clojure.main" "node_repl.clj"]}
+  :aliases {"cljs-repl" ["with-profile" "+cljs" "run" "-m" "clojure.main" "cljs_repl.clj"]}
 
   :plugins
   [[lein-cloverage "1.0.6"]]
