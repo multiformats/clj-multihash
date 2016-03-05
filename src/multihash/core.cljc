@@ -7,9 +7,7 @@
     [alphabase.hex :as hex]
     [clojure.string :as str])
   #?(:clj (:import
-            (java.io
-              InputStream
-              IOException)
+            java.io.InputStream
             java.nio.ByteBuffer
             java.security.MessageDigest)))
 
@@ -137,12 +135,13 @@
   [algorithm digest]
   (let [algo (get-algorithm algorithm)]
     (when-not (integer? (:code algo))
-      (throw (IllegalArgumentException.
+      (throw (ex-info
                (str "Argument " (pr-str algorithm) " does not "
-                    "represent a valid hash algorithm."))))
+                    "represent a valid hash algorithm.")
+               {:algorithm algorithm})))
     (let [digest (if (string? digest) digest (hex/encode digest))]
       (when-let [err (hex/validate digest)]
-        (throw (IllegalArgumentException. err)))
+        (throw (ex-info err {:digest digest})))
       (Multihash. (:code algo) digest nil))))
 
 
@@ -207,7 +206,7 @@
 
 (defn- read-stream-digest
   "Reads a byte digest array from an input stream. First reads a byte giving
-  the length of the digest data to read. Throws an IOException if the length is
+  the length of the digest data to read. Throws an ex-info if the length is
   invalid or there is an error reading from the stream."
   ^bytes
   [^InputStream input]
