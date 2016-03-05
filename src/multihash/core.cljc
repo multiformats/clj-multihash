@@ -63,65 +63,137 @@
 ;; - `_digest` is a string holding the hex-encoded algorithm output.
 ;;
 ;; Digest values also support metadata.
-(deftype Multihash
-  [^long _code ^String _digest _meta]
+#?(:clj
+    (deftype Multihash
+      [^long _code ^String _digest _meta]
 
-  ; Ref: https://github.com/clojure/clojurescript/blob/master/src/main/cljs/cljs/core.cljs#L430
+      Object
 
-  Object
+      (toString
+        [this]
+        (str "hash:" (name (:name (get-algorithm _code))) \: _digest))
 
-  (toString [this]
-    (str "hash:" (name (:name (get-algorithm _code))) \: _digest))
+      (equals
+        [this that]
+        (cond
+          (identical? this that) true
+          (instance? Multihash that)
+            (and (= _code   (._code   ^Multihash that))
+                 (= _digest (._digest ^Multihash that)))
+          :else false))
 
-  ; IEquiv (-equiv [this other])
-  (equals [this that]
-    (cond
-      (identical? this that) true
-      (instance? Multihash that)
-        (and (= _code   (._code   ^Multihash that))
-             (= _digest (._digest ^Multihash that)))
-      :else false))
-
-  ; IHash (-hash [this])
-  (hashCode [this]
-    (hash-combine _code _digest))
-
-
-  ; IComparable (-compare [x y])
-  Comparable
-
-  (compareTo [this that]
-    (cond
-      (= this that) 0
-      (< _code (._code ^Multihash that)) -1
-      (> _code (._code ^Multihash that)) 1
-      :else (compare _digest (._digest ^Multihash that))))
+      (hashCode
+        [this]
+        (hash-combine _code _digest))
 
 
-  ; ILookup (-lookup [this k] [this k not-found])
-  clojure.lang.ILookup
+      Comparable
 
-  (valAt [this k not-found]
-    (case k
-      :code _code
-      :algorithm (:name (get-algorithm _code))
-      :length (/ (count _digest) 2)
-      :digest (hex/decode _digest)
-      :hex-digest _digest
-      not-found))
-
-  (valAt [this k]
-    (.valAt this k nil))
+      (compareTo
+        [this that]
+        (cond
+          (= this that) 0
+          (< _code (._code ^Multihash that)) -1
+          (> _code (._code ^Multihash that)) 1
+          :else (compare _digest (._digest ^Multihash that))))
 
 
-  clojure.lang.IObj
+      clojure.lang.ILookup
 
-  ; IMeta (-meta [this])
-  (meta [_] _meta)
+      (valAt
+        [this k]
+        (.valAt this k nil))
 
-  ; IWithMeta (-with-meta [this meta])
-  (withMeta [_ meta-map]
-    (Multihash. _code _digest meta-map)))
+      (valAt
+        [this k not-found]
+        (case k
+          :code _code
+          :algorithm (:name (get-algorithm _code))
+          :length (/ (count _digest) 2)
+          :digest (hex/decode _digest)
+          :hex-digest _digest
+          not-found))
+
+
+      clojure.lang.IObj
+
+      (meta [_] _meta)
+
+      (withMeta
+        [_ meta-map]
+        (Multihash. _code _digest meta-map)))
+
+
+   :cljs
+    (deftype Multihash
+      [_code _digest _meta]
+
+      ; Ref: https://github.com/clojure/clojurescript/blob/master/src/main/cljs/cljs/core.cljs#L430
+
+      Object
+
+      (toString
+        [this]
+        (str "hash:" (name (:name (get-algorithm _code))) \: _digest))
+
+
+      IEquiv
+
+      (-equiv
+        [this that]
+        (cond
+          (identical? this that) true
+          (instance? Multihash that)
+            (and (= _code   (:code that))
+                 (= _digest (:hex-digest that)))
+          :else false))
+
+
+      IHash
+
+      (-hash
+        [this]
+        (hash-combine _code _digest))
+
+
+      IComparable
+
+      (-compare
+        [this that]
+        (cond
+          (= this that) 0
+          (< _code (:code that)) -1
+          (> _code (:code that)) 1
+          :else (compare _digest (:hex-digest that))))
+
+
+      ILookup
+
+      (-lookup
+        [this k]
+        (-lookup this k nil))
+
+      (-lookup
+        [this k not-found]
+        (case k
+          :code _code
+          :algorithm (:name (get-algorithm _code))
+          :length (/ (count _digest) 2)
+          :digest (hex/decode _digest)
+          :hex-digest _digest
+          not-found))
+
+
+      IMeta
+
+      (-meta [_] _meta)
+
+
+      IWithMeta
+
+      (-with-meta
+        [_ meta-map]
+        (Multihash. _code _digest meta-map))))
 
 
 ;; Remove automatic constructor function.
