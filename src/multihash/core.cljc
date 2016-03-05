@@ -225,10 +225,10 @@
   ^bytes
   [mhash]
   (let [length (:length mhash)
-        encoded (byte-array (+ length 2))]
-    (aset-byte encoded 0 (byte (:code mhash)))
-    (aset-byte encoded 1 (byte length))
-    (System/arraycopy (:digest mhash) 0 encoded 2 length)
+        encoded (bytes/byte-array (+ length 2))]
+    (bytes/set-byte encoded 0 (:code mhash))
+    (bytes/set-byte encoded 1 length)
+    (bytes/copy (:digest mhash) 0 encoded 2 length)
     encoded))
 
 
