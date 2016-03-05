@@ -1,7 +1,7 @@
 (require 'cljs.repl)
-(require 'cljs.repl.rhino)
+(require 'cljs.repl.node)
 
 (cljs.repl/repl
-  (cljs.repl.rhino/repl-env)
+  (cljs.repl.node/repl-env)
   :watch "src"
   :output-dir "target")
