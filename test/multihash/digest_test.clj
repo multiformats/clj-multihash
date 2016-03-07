@@ -24,10 +24,10 @@
                (:algorithm mh3)
                (:algorithm mh4))
             "Constructed multihash algorithms match")
-        (is (= (._digest mh1)
-               (._digest mh2)
-               (._digest mh3)
-               (._digest mh4))
+        (is (= (:hex-digest mh1)
+               (:hex-digest mh2)
+               (:hex-digest mh3)
+               (:hex-digest mh4))
             "Constructed multihash digests match")
         (is (thrown? RuntimeException
                      (hash-fn 123)))))))
@@ -35,7 +35,7 @@
 
 (deftest content-validation
   (let [content "baz bar foo"
-        mhash (multihash/sha1 content)]
+        mhash (digest/sha1 content)]
     (is (nil? (digest/test nil nil)))
     (is (nil? (digest/test nil content)))
     (is (nil? (digest/test mhash nil)))
