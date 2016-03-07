@@ -61,30 +61,6 @@
       "Odd digest length should be rejected"))
 
 
-(deftest hashing-constructors
-  (doseq [algorithm (keys multihash/functions)]
-    (testing (str (name algorithm) " hashing")
-      (let [hash-fn (multihash/functions algorithm)
-            content "foo bar baz"
-            mh1 (hash-fn content)
-            mh2 (hash-fn (.getBytes content))
-            mh3 (hash-fn (ByteBuffer/wrap (.getBytes content)))
-            mh4 (hash-fn (ByteArrayInputStream. (.getBytes content)))]
-        (is (= algorithm
-               (:algorithm mh1)
-               (:algorithm mh2)
-               (:algorithm mh3)
-               (:algorithm mh4))
-            "Constructed multihash algorithms match")
-        (is (= (._digest mh1)
-               (._digest mh2)
-               (._digest mh3)
-               (._digest mh4))
-            "Constructed multihash digests match")
-        (is (thrown? RuntimeException
-                     (hash-fn 123)))))))
-
-
 (deftest value-semantics
   (let [a (multihash/create 0x11 "0beec7b8")
         b (multihash/create 0x11 "94a1be0c")
@@ -191,22 +167,3 @@
       (let [stream (ByteArrayInputStream. (multihash/encode mhash))]
         (is (= mhash (multihash/decode stream))
             "Multihash round-trips through InputStream")))))
-
-
-(deftest content-validation
-  (let [content "baz bar foo"
-        mhash (multihash/sha1 content)]
-    (is (nil? (multihash/test nil nil)))
-    (is (nil? (multihash/test nil content)))
-    (is (nil? (multihash/test mhash nil)))
-    (is (true? (multihash/test mhash content))
-        "Correct multihash returns true")
-    (is (false? (multihash/test
-                  (multihash/create :sha1 "68a9f54521a5501230e9dc73")
-                  content))
-        "Incorrect multihash returns false")
-    (is (thrown-with-msg? RuntimeException #"^No supported hashing function"
-          (multihash/test
-            (multihash/create :blake2b "68a9f54521a5501230e9dc73")
-            content))
-        "Unsupported hash function cannot be validated")))
