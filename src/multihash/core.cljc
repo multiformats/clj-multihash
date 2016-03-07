@@ -3,13 +3,10 @@
   (:require
     [alphabase.base58 :as b58]
     [alphabase.bytes :as bytes]
-    [alphabase.hex :as hex]
-    [clojure.string :as str])
+    [alphabase.hex :as hex])
   #?(:clj (:import
             (clojure.lang ILookup IMeta IObj)
-            java.io.InputStream
-            java.nio.ByteBuffer
-            java.security.MessageDigest)))
+            java.io.InputStream)))
 
 
 ;; ## Hash Function Algorithms
