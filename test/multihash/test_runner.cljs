@@ -4,9 +4,9 @@
   (:require
     doo.runner
     multihash.core-test
-    multihash.digest-test))
+    #_ multihash.digest-test))
 
 
 (doo-tests
   'multihash.core-test
-  'multihash.digest-test)
+  #_ 'multihash.digest-test)
