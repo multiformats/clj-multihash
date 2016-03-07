@@ -253,9 +253,9 @@
   (decode
     [source]
     (decode-array
-      (if (hex/valid? source)
-        (hex/decode source)
-        (b58/decode source))))
+      (if (hex/valid? (str source))
+        (hex/decode (str source))
+        (b58/decode (str source)))))
 
 
   #?@(:clj
