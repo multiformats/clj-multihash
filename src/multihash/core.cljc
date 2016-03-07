@@ -193,8 +193,8 @@
                (str "Cannot read multihash from byte array: " encoded-size
                     " is less than the minimum of " min-size)
                {:type :multihash/bad-input}))))
-  (let [code (aget encoded 0)
-        length (aget encoded 1)
+  (let [code (bytes/get-byte encoded 0)
+        length (bytes/get-byte encoded 1)
         payload (- (alength encoded) 2)]
     (when-not (pos? length)
       (throw (ex-info
@@ -205,29 +205,30 @@
                (str "Encoded digest length " length " exceeds actual "
                     "remaining payload of " payload " bytes")
                {:type :multihash/bad-input})))
-    (let [digest (byte-array length)]
-      (System/arraycopy encoded 2 digest 0 length)
+    (let [digest (bytes/byte-array length)]
+      (bytes/copy encoded 2 digest 0 length)
       (create code digest))))
 
 
-(defn- read-stream-digest
-  "Reads a byte digest array from an input stream. First reads a byte giving
-  the length of the digest data to read. Throws an ex-info if the length is
-  invalid or there is an error reading from the stream."
-  ^bytes
-  [^InputStream input]
-  (let [length (.read input)]
-    (when-not (pos? length)
-      (throw (ex-info
-               (format "Byte %02x is not a valid digest length." length)
-               {:type :multihash/bad-input})))
-    (let [digest (byte-array length)]
-      (loop [offset 0
-             remaining length]
-        (let [n (.read input digest offset remaining)]
-          (if (< n remaining)
-            (recur (+ offset n) (- remaining n))
-            digest))))))
+#?(:clj
+   (defn- read-stream-digest
+     "Reads a byte digest array from an input stream. First reads a byte giving
+     the length of the digest data to read. Throws an ex-info if the length is
+     invalid or there is an error reading from the stream."
+     ^bytes
+     [^InputStream input]
+     (let [length (.read input)]
+       (when-not (pos? length)
+         (throw (ex-info
+                  (format "Byte %02x is not a valid digest length." length)
+                  {:type :multihash/bad-input})))
+       (let [digest (byte-array length)]
+         (loop [offset 0
+                remaining length]
+           (let [n (.read input digest offset remaining)]
+             (if (< n remaining)
+               (recur (+ offset n) (- remaining n))
+               digest)))))))
 
 
 (defprotocol Decodable
@@ -241,14 +242,16 @@
 
 (extend-protocol Decodable
 
-  (class (byte-array 0))
+  #?(:clj (class (byte-array 0))
+     :cljs js/Uint8Array)
 
   (decode
     [source]
     (decode-array source))
 
 
-  String
+  #?(:clj java.lang.String
+     :cljs js/String)
 
   (decode
     [source]
@@ -258,10 +261,11 @@
         (b58/decode source))))
 
 
-  InputStream
+  #?@(:clj
+      [InputStream
 
-  (decode
-    [source]
-    (let [code (.read source)
-          digest (read-stream-digest source)]
-      (create code digest))))
+       (decode
+         [source]
+         (let [code (.read source)
+               digest (read-stream-digest source)]
+           (create code digest)))]))
