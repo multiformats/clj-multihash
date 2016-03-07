@@ -7,6 +7,7 @@
     [alphabase.hex :as hex]
     [clojure.string :as str])
   #?(:clj (:import
+            (clojure.lang ILookup IMeta IObj)
             java.io.InputStream
             java.nio.ByteBuffer
             java.security.MessageDigest)))
@@ -58,146 +59,80 @@
 
 ;; Multihash identifiers have two properties:
 ;;
-;; - `_code` is a numeric code for an algorithm entry in `algorithm-codes` or an
+;; - `code` is a numeric code for an algorithm entry in `algorithm-codes` or an
 ;;   application-specific algorithm code.
-;; - `_digest` is a string holding the hex-encoded algorithm output.
+;; - `hex-digest` is a string holding the hex-encoded algorithm output.
 ;;
-;; Digest values also support metadata.
-#?(:clj
-    (deftype Multihash
-      [^long _code ^String _digest _meta]
+;; Multihash values also support metadata.
+(deftype Multihash
+  [^long code ^String hex-digest _meta]
 
-      Object
+  Object
 
-      (toString
-        [this]
-        (str "hash:" (name (:name (get-algorithm _code))) \: _digest))
-
-      (equals
-        [this that]
-        (cond
-          (identical? this that) true
-          (instance? Multihash that)
-            (and (= _code   (._code   ^Multihash that))
-                 (= _digest (._digest ^Multihash that)))
-          :else false))
-
-      (hashCode
-        [this]
-        (hash-combine _code _digest))
+  (toString
+    [this]
+    (str "hash:" (name (:name (get-algorithm code))) \: hex-digest))
 
 
-      Comparable
+  #?(:cljs IEquiv)
 
-      (compareTo
-        [this that]
-        (cond
-          (= this that) 0
-          (< _code (._code ^Multihash that)) -1
-          (> _code (._code ^Multihash that)) 1
-          :else (compare _digest (._digest ^Multihash that))))
-
-
-      clojure.lang.ILookup
-
-      (valAt
-        [this k]
-        (.valAt this k nil))
-
-      (valAt
-        [this k not-found]
-        (case k
-          :code _code
-          :algorithm (:name (get-algorithm _code))
-          :length (/ (count _digest) 2)
-          :digest (hex/decode _digest)
-          :hex-digest _digest
-          not-found))
+  (#?(:clj equals, :cljs -equiv)
+    [this that]
+    (cond
+      (identical? this that) true
+      (instance? Multihash that)
+        (and (= code (:code that))
+             (= hex-digest (:hex-digest that)))
+      :else false))
 
 
-      clojure.lang.IObj
+  #?(:cljs IHash)
 
-      (meta [_] _meta)
-
-      (withMeta
-        [_ meta-map]
-        (Multihash. _code _digest meta-map)))
+  (#?(:clj hashCode, :cljs -hash)
+    [this]
+    (hash-combine code hex-digest))
 
 
-   :cljs
-    (deftype Multihash
-      [_code _digest _meta]
+  #?(:clj Comparable, :cljs IComparable)
 
-      ; Ref: https://github.com/clojure/clojurescript/blob/master/src/main/cljs/cljs/core.cljs#L430
-
-      Object
-
-      (toString
-        [this]
-        (str "hash:" (name (:name (get-algorithm _code))) \: _digest))
+  (#(:clj compareTo, :cljs -compare)
+    [this that]
+    (cond
+      (= this that) 0
+      (< code (:code that)) -1
+      (> code (:code that))  1
+      :else (compare hex-digest (:hex-digest that))))
 
 
-      IEquiv
+  ILookup
 
-      (-equiv
-        [this that]
-        (cond
-          (identical? this that) true
-          (instance? Multihash that)
-            (and (= _code   (:code that))
-                 (= _digest (:hex-digest that)))
-          :else false))
+  (#?(:clj valAt, :cljs -lookup)
+    [this k]
+    (#?(:clj .valAt, :cljs -lookup) this k nil))
 
-
-      IHash
-
-      (-hash
-        [this]
-        (hash-combine _code _digest))
+  (#?(:clj valAt, :cljs -lookup)
+    [this k not-found]
+    (case k
+      :code code
+      :algorithm (:name (get-algorithm code))
+      :length (/ (count hex-digest) 2)
+      :digest (hex/decode hex-digest)
+      :hex-digest hex-digest
+      not-found))
 
 
-      IComparable
+  IMeta
 
-      (-compare
-        [this that]
-        (cond
-          (= this that) 0
-          (< _code (:code that)) -1
-          (> _code (:code that)) 1
-          :else (compare _digest (:hex-digest that))))
+  (#?(:clj meta, :cljs -meta)
+    [this]
+    _meta)
 
 
-      ILookup
+  #?(:clj IObj, :cljs IWithMeta)
 
-      (-lookup
-        [this k]
-        (-lookup this k nil))
-
-      (-lookup
-        [this k not-found]
-        (case k
-          :code _code
-          :algorithm (:name (get-algorithm _code))
-          :length (/ (count _digest) 2)
-          :digest (hex/decode _digest)
-          :hex-digest _digest
-          not-found))
-
-
-      IMeta
-
-      (-meta [_] _meta)
-
-
-      IWithMeta
-
-      (-with-meta
-        [_ meta-map]
-        (Multihash. _code _digest meta-map))))
-
-
-;; Remove automatic constructor function.
-(ns-unmap *ns* '->Multihash)
+  (#?(:clj withMeta, :cljs -with-meta)
+    [this meta-map]
+    (Multihash. code hex-digest meta-map)))
 
 
 (defn create
@@ -211,10 +146,10 @@
                (str "Argument " (pr-str algorithm) " does not "
                     "represent a valid hash algorithm.")
                {:algorithm algorithm})))
-    (let [digest (if (string? digest) digest (hex/encode digest))]
-      (when-let [err (hex/validate digest)]
-        (throw (ex-info err {:digest digest})))
-      (Multihash. (:code algo) digest nil))))
+    (let [hex-digest (if (string? digest) digest (hex/encode digest))]
+      (when-let [err (hex/validate hex-digest)]
+        (throw (ex-info err {:hex-digest hex-digest})))
+      (->Multihash (:code algo) hex-digest nil))))
 
 
 
