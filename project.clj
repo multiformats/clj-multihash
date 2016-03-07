@@ -6,21 +6,33 @@
 
   :deploy-branches ["master"]
 
-  :aliases {"cljs-repl" ["with-profile" "+cljs" "run" "-m" "clojure.main" "cljs_repl.clj"]}
+  :aliases {"cljs-repl" ["run" "-m" "clojure.main" "cljs_repl.clj"]}
 
   :plugins
-  [[lein-cloverage "1.0.6"]]
+  [[lein-cljsbuild "1.1.2"]
+   [lein-cloverage "1.0.6"]
+   [lein-doo "0.1.6"]]
 
   :dependencies
-  [[mvxcvi/alphabase "0.1.0"]
-   [org.clojure/clojure "1.8.0"]]
+  [[mvxcvi/alphabase "0.2.0"]]
 
-  :codox {:metadata {:doc/format :markdown}
-          :source-uri "https://github.com/greglook/clj-multihash/blob/master/{filepath}#L{line}"
-          :doc-paths ["doc/extra"]
-          :output-path "doc/api"}
+  :cljsbuild
+  {:builds {:test {:source-paths ["src" "test"]
+                   :compiler {:output-dir "target/cljs/out"
+                              :output-to "target/cljs/tests.js"
+                   :main multihash.test-runner
+                   :optimizations :none}}}}
 
-  :whidbey {:tag-types {'multihash.core.Multihash {'data/hash 'multihash.core/base58}}}
+  :codox
+  {:metadata {:doc/format :markdown}
+   :source-uri "https://github.com/greglook/clj-multihash/blob/master/{filepath}#L{line}"
+   :doc-paths ["doc/extra"]
+   :output-path "doc/api"}
 
-  :profiles {:cljs {:dependencies
-                    [[org.clojure/clojurescript "1.7.170"]]}})
+  :whidbey
+  {:tag-types {'multihash.core.Multihash {'data/hash 'multihash.core/base58}}}
+
+  :profiles
+  {:dev {:dependencies
+         [[org.clojure/clojure "1.8.0"]
+          [org.clojure/clojurescript "1.7.170"]]}})
