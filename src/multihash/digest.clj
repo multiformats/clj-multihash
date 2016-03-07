@@ -1,5 +1,6 @@
 (ns multihash.digest
   "Digest functions for creating new multihash constructors."
+  (:refer-clojure :exclude [test])
   (:require
     [multihash.core :as multihash])
   (:import

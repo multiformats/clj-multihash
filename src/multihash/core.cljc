@@ -1,6 +1,5 @@
 (ns multihash.core
   "Core multihash type definition and helper methods."
-  (:refer-clojure :exclude [test])
   (:require
     [alphabase.base58 :as b58]
     [alphabase.bytes :as bytes]
@@ -95,7 +94,7 @@
 
   #?(:clj Comparable, :cljs IComparable)
 
-  (#(:clj compareTo, :cljs -compare)
+  (#?(:clj compareTo, :cljs -compare)
     [this that]
     (cond
       (= this that) 0
