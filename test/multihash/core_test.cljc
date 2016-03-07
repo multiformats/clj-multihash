@@ -1,16 +1,18 @@
 (ns multihash.core-test
   (:require
+    #?(:clj [clojure.test :refer :all]
+       :cljs [cljs.test :refer-macros [deftest is testing]])
+    [alphabase.bytes :as bytes]
     [clojure.string :as str]
-    [clojure.test :refer :all]
     [multihash.core :as multihash])
-  (:import
-    clojure.lang.ExceptionInfo
-    java.io.ByteArrayInputStream
-    java.nio.ByteBuffer))
+  #?(:clj (:import
+            clojure.lang.ExceptionInfo
+            java.io.ByteArrayInputStream
+            java.nio.ByteBuffer)))
 
 
 (deftest app-specific-codes
-  (is (nil? (multihash/app-code? 17.0)))
+  (is (nil? (multihash/app-code? 17.3)))
   (is (false? (multihash/app-code? 0x00)))
   (doseq [code (range 0x01 0x10)]
     (is (true? (multihash/app-code? code))
@@ -53,7 +55,7 @@
                (multihash/create :sha1 "018zk80q"))
       "Malformed digest should be rejected")
   (is (thrown? ExceptionInfo
-               (multihash/create :sha1 (byte-array 128)))
+               (multihash/create :sha1 (bytes/byte-array 128)))
       "Digest length should be limited to 127")
   (is (thrown? ExceptionInfo
                (multihash/create :sha1 "012"))
@@ -109,40 +111,38 @@
 
 (deftest array-decoding-failures
   (is (thrown? ExceptionInfo
-               (multihash/decode-array (byte-array 2)))
+               (multihash/decode-array (bytes/byte-array 2)))
       "byte array must have at least three bytes")
   (is (thrown? ExceptionInfo
                (multihash/decode-array
-                 (doto (byte-array 4)
-                   (aset-byte 0 0x11)
-                   (aset-byte 1 0))))
+                 (bytes/init-bytes [0x11 0x00 0x00 0x00])))
       "Encoded length must be positive")
   (is (thrown? ExceptionInfo
                (multihash/decode-array
-                 (doto (byte-array 4)
-                   (aset-byte 0 0x11)
-                   (aset-byte 1 8))))
+                 (bytes/init-bytes [0x11 0x08 0x00 0x00])))
       "Encoded length must be within byte content"))
 
 
-(defn stream-fixture
-  "Constructs a stream with certain leading bytes for testing."
-  ([code length]
-   (stream-fixture code length length))
-  ([code length actual]
-   (let [buffer (byte-array actual)]
-     (aset-byte buffer 0 code)
-     (aset-byte buffer 1 length)
-     (ByteArrayInputStream. buffer))))
+#?(:clj
+    (defn stream-fixture
+      "Constructs a stream with certain leading bytes for testing."
+      ([code length]
+       (stream-fixture code length length))
+      ([code length actual]
+       (let [buffer (bytes/byte-array actual)]
+         (bytes/set-byte buffer 0 code)
+         (bytes/set-byte buffer 1 length)
+         (ByteArrayInputStream. buffer)))))
 
 
-(deftest stream-decoding-failures
-  (is (thrown? ExceptionInfo
-               (multihash/decode (stream-fixture 0x11 0 4)))
-      "Stream with non-positive length is illegal.")
-  (is (thrown? Exception
-               (multihash/decode (stream-fixture 0x11 20 5)))
-      "Stream without enough data throws exception.."))
+#?(:clj
+    (deftest stream-decoding-failures
+      (is (thrown? ExceptionInfo
+                   (multihash/decode (stream-fixture 0x11 0 4)))
+          "Stream with non-positive length is illegal.")
+      (is (thrown? Exception
+                   (multihash/decode (stream-fixture 0x11 20 5)))
+          "Stream without enough data throws exception..")))
 
 
 (deftest example-coding
@@ -163,6 +163,7 @@
         (is (string? b58) "Multihash encodes to a base-58 string")
         (is (= mhash (multihash/decode b58))
             "Multihash round-trips through Base58 encoding"))
-      (let [stream (ByteArrayInputStream. (multihash/encode mhash))]
-        (is (= mhash (multihash/decode stream))
-            "Multihash round-trips through InputStream")))))
+      #?(:clj
+          (let [stream (ByteArrayInputStream. (multihash/encode mhash))]
+            (is (= mhash (multihash/decode stream))
+                "Multihash round-trips through InputStream"))))))
