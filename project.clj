@@ -21,7 +21,7 @@
                    :compiler {:output-dir "target/cljs/out"
                               :output-to "target/cljs/tests.js"
                    :main multihash.test-runner
-                   :optimizations :none}}}}
+                   :optimizations :whitespace}}}}
 
   :codox
   {:metadata {:doc/format :markdown}

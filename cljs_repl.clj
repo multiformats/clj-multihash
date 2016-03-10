@@ -1,7 +1,7 @@
 (require 'cljs.repl)
-(require 'cljs.repl.node)
+(require 'cljs.repl.nashorn)
 
 (cljs.repl/repl
-  (cljs.repl.node/repl-env)
+  (cljs.repl.nashorn/repl-env)
   :watch "src"
   :output-dir "target")
