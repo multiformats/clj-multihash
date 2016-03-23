@@ -27,7 +27,8 @@ Multihashes are sortable, support metadata, and implement value-based equality
 and hash-code generation.
 
 ```clojure
-(require '[multihash.core :as multihash])
+(require '[multihash.core :as multihash]
+         '[multihash.digest :as digest])
 
 ; List the known hash functions:
 => (keys multihash/algorithm-codes)
@@ -38,10 +39,10 @@ and hash-code generation.
 #<Multihash hash:sha1:0f1e2d3c4b5a6978>
 
 ; Or use one of the constructors for built-in Java implementations:
-=> (keys multihash/functions)
+=> (keys digest/functions)
 (:sha1 :sha2-256 :sha2-512)
 
-=> (def mhash (multihash/sha2-256 "foo bar baz"))
+=> (def mhash (digest/sha2-256 "foo bar baz"))
 #'user/mhash
 
 ; Properties can be accessed using keyword lookups:
