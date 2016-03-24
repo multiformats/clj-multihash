@@ -4,8 +4,8 @@ clj-multihash
 [![Dependency Status](https://www.versioneye.com/clojure/mvxcvi:multihash/badge.svg)](https://www.versioneye.com/clojure/mvxcvi:multihash)
 [![Build Status](https://travis-ci.org/greglook/clj-multihash.svg?branch=develop)](https://travis-ci.org/greglook/clj-multihash)
 [![Coverage Status](https://coveralls.io/repos/greglook/clj-multihash/badge.svg?branch=develop)](https://coveralls.io/r/greglook/clj-multihash?branch=develop)
-[![API codox](http://b.repl.ca/v1/doc-API-blue.png)](https://greglook.github.io/clj-multihash/api/multihash.core.html)
-[![marginalia docs](http://b.repl.ca/v1/doc-marginalia-blue.png)](https://greglook.github.io/clj-multihash/marginalia/uberdoc.html)
+[![API codox](https://img.shields.io/badge/doc-API-blue.svg)](https://greglook.github.io/clj-multihash/api/multihash.core.html)
+[![marginalia docs](https://img.shields.io/badge/doc-marginalia-blue.png)](https://greglook.github.io/clj-multihash/marginalia/uberdoc.html)
 [![Join the chat at https://gitter.im/greglook/clj-multihash](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/greglook/clj-multihash)
 
 A Clojure library implementing the
