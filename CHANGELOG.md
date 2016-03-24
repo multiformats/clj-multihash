@@ -7,6 +7,10 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+...
+
+## [2.0.0] - 2016-03-23
+
 This is a major release that migrates to a cross-compiled codebase supporting
 oth Clojure and ClojureScript. The base conversion logic has moved to
 [alphabase](https://github.com/greglook/alphabase), and the hash constructors in
@@ -69,7 +73,8 @@ significantly between languages.
 
 Initial project release.
 
-[Unreleased]: https://github.com/greglook/clj-multihash/compare/1.1.0...HEAD
+[Unreleased]: https://github.com/greglook/clj-multihash/compare/2.0.0...HEAD
+[2.0.0]: https://github.com/greglook/clj-multihash/compare/1.1.0...2.0.0
 [1.1.0]: https://github.com/greglook/clj-multihash/compare/1.0.0...1.1.0
 [1.0.0]: https://github.com/greglook/clj-multihash/compare/0.2.0...1.0.0
 [0.2.0]: https://github.com/greglook/clj-multihash/compare/0.1.2...0.2.0
