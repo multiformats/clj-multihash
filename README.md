@@ -4,8 +4,8 @@ clj-multihash
 [![Dependency Status](https://www.versioneye.com/clojure/mvxcvi:multihash/badge.svg)](https://www.versioneye.com/clojure/mvxcvi:multihash)
 [![Build Status](https://travis-ci.org/greglook/clj-multihash.svg?branch=develop)](https://travis-ci.org/greglook/clj-multihash)
 [![Coverage Status](https://coveralls.io/repos/greglook/clj-multihash/badge.svg?branch=develop)](https://coveralls.io/r/greglook/clj-multihash?branch=develop)
-[![API codox](http://b.repl.ca/v1/doc-API-blue.png)](https://greglook.github.io/clj-multihash/api/multihash.core.html)
-[![marginalia docs](http://b.repl.ca/v1/doc-marginalia-blue.png)](https://greglook.github.io/clj-multihash/marginalia/uberdoc.html)
+[![API codox](https://img.shields.io/badge/doc-API-blue.svg)](https://greglook.github.io/clj-multihash/api/multihash.core.html)
+[![marginalia docs](https://img.shields.io/badge/doc-marginalia-blue.png)](https://greglook.github.io/clj-multihash/marginalia/uberdoc.html)
 [![Join the chat at https://gitter.im/greglook/clj-multihash](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/greglook/clj-multihash)
 
 A Clojure library implementing the
@@ -27,7 +27,8 @@ Multihashes are sortable, support metadata, and implement value-based equality
 and hash-code generation.
 
 ```clojure
-(require '[multihash.core :as multihash])
+(require '[multihash.core :as multihash]
+         '[multihash.digest :as digest])
 
 ; List the known hash functions:
 => (keys multihash/algorithm-codes)
@@ -38,10 +39,10 @@ and hash-code generation.
 #<Multihash hash:sha1:0f1e2d3c4b5a6978>
 
 ; Or use one of the constructors for built-in Java implementations:
-=> (keys multihash/functions)
+=> (keys digest/functions)
 (:sha1 :sha2-256 :sha2-512)
 
-=> (def mhash (multihash/sha2-256 "foo bar baz"))
+=> (def mhash (digest/sha2-256 "foo bar baz"))
 #'user/mhash
 
 ; Properties can be accessed using keyword lookups:
