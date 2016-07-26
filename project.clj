@@ -6,7 +6,9 @@
 
   :deploy-branches ["master"]
 
-  :aliases {"cljs-repl" ["run" "-m" "clojure.main" "cljs_repl.clj"]}
+  :aliases
+  {"cljs-repl" ["run" "-m" "clojure.main" "cljs_repl.clj"]
+   "cljs-test" ["doo" "phantom" "test" "once"]}
 
   :plugins
   [[lein-cljsbuild "1.1.2"]
