@@ -7,7 +7,9 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
-...
+### Changed
+- Upgrade dependency versions.
+- Switch to CircleCI for tests.
 
 ## [2.0.0] - 2016-03-23
 
@@ -18,13 +20,13 @@ the core namespace have moved to `multihash.digest` since they differ
 significantly between languages.
 
 ### Changed
-- Changed most files to `cljc` to support cross-compilation.
-- Changed most exceptions to `ex-info`.
-- Moved the `functions`, `test`, `sha1`, `sha2-256`, and `sha2-512` vars from
+- Change most files to `cljc` to support cross-compilation.
+- Change most exceptions to `ex-info`.
+- Move the `functions`, `test`, `sha1`, `sha2-256`, and `sha2-512` vars from
   `multihash.core` to `multihash.digest`.
 
 ### Removed
-- Dropped `multihash.hex` and `multihash.base58` namespaces in favor of
+- Drop `multihash.hex` and `multihash.base58` namespaces in favor of
   `mvxcvi/alphabase`.
 
 ## [1.1.0] - 2015-11-09
