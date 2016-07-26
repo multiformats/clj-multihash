@@ -2,7 +2,7 @@ clj-multihash
 =============
 
 [![Dependency Status](https://www.versioneye.com/clojure/mvxcvi:multihash/badge.svg)](https://www.versioneye.com/clojure/mvxcvi:multihash)
-[![Build Status](https://travis-ci.org/greglook/clj-multihash.svg?branch=develop)](https://travis-ci.org/greglook/clj-multihash)
+[![CircleCI](https://circleci.com/gh/greglook/clj-multihash.svg?style=shield&circle-token=f372615a37c2dfd05b10d990a5b3a1ed684c29e0)](https://circleci.com/gh/greglook/clj-multihash)
 [![Coverage Status](https://coveralls.io/repos/greglook/clj-multihash/badge.svg?branch=develop)](https://coveralls.io/r/greglook/clj-multihash?branch=develop)
 [![API codox](https://img.shields.io/badge/doc-API-blue.svg)](https://greglook.github.io/clj-multihash/api/multihash.core.html)
 [![marginalia docs](https://img.shields.io/badge/doc-marginalia-blue.png)](https://greglook.github.io/clj-multihash/marginalia/uberdoc.html)
