@@ -41,4 +41,5 @@
                    [org.clojure/clojurescript "1.9.93"]]}
 
    :coverage
-   {:plugins [[rfkm/lein-cloverage "1.0.8"]]}})
+   {:plugins [[rfkm/lein-cloverage "1.0.8"]]
+    :dependencies [[org.clojure/tools.reader "1.0.0-beta1"]]}})
