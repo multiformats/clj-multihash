@@ -2,4 +2,4 @@ test:
   override:
     - lein check
     - lein test
-    - lein clj-test
+    - lein cljs-test
