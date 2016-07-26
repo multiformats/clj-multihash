@@ -14,7 +14,7 @@
    [lein-doo "0.1.6"]]
 
   :dependencies
-  [[mvxcvi/alphabase "0.2.0"]]
+  [[mvxcvi/alphabase "0.2.1"]]
 
   :cljsbuild
   {:builds {:test {:source-paths ["src" "test"]
@@ -35,4 +35,4 @@
   :profiles
   {:dev {:dependencies
          [[org.clojure/clojure "1.8.0"]
-          [org.clojure/clojurescript "1.8.34"]]}})
+          [org.clojure/clojurescript "1.9.93"]]}})
