@@ -5,15 +5,16 @@
             :url "http://unlicense.org/"}
 
   :deploy-branches ["master"]
+  :pedantic? :abort
 
   :aliases
   {"cljs-repl" ["run" "-m" "clojure.main" "cljs_repl.clj"]
-   "cljs-test" ["doo" "phantom" "test" "once"]}
+   "cljs-test" ["doo" "phantom" "test" "once"]
+   "coverage" ["with-profile" "+test,+coverage" "cloverage"]}
 
   :plugins
   [[lein-cljsbuild "1.1.2"]
-   [lein-cloverage "1.0.6"]
-   [lein-doo "0.1.6"]]
+   [lein-doo "0.1.6" :exclusions [org.clojure/clojurescript]]]
 
   :dependencies
   [[mvxcvi/alphabase "0.2.1"]]
@@ -35,6 +36,9 @@
   {:tag-types {'multihash.core.Multihash {'data/hash 'multihash.core/base58}}}
 
   :profiles
-  {:dev {:dependencies
-         [[org.clojure/clojure "1.8.0"]
-          [org.clojure/clojurescript "1.9.93"]]}})
+  {:dev
+   {:dependencies [[org.clojure/clojure "1.8.0"]
+                   [org.clojure/clojurescript "1.9.93"]]}
+
+   :coverage
+   {:plugins [[rfkm/lein-cloverage "1.0.8"]]}})
