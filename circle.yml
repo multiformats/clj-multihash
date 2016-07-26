@@ -1,0 +1,8 @@
+test:
+  override:
+    - lein check
+    - lein test
+    - lein cljs-test
+    - lein coverage
+  post:
+    - cp -r target/coverage/ $CIRCLE_ARTIFACTS/
