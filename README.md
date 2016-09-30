@@ -29,7 +29,7 @@ extensible, efficient binary representation for cryptographic hashes.
 Library releases are published on Clojars. To use the latest version with
 Leiningen, add the following dependency to your project definition:
 
-[![Clojars Project](http://clojars.org/mvxcvi/multihash/latest-version.svg)](http://clojars.org/mvxcvi/multihash)
+[![Clojars Project](https://clojars.org/mvxcvi/multihash/latest-version.svg)](https://clojars.org/mvxcvi/multihash)
 
 ## Usage
 
