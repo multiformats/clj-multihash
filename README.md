@@ -2,12 +2,14 @@ clj-multihash
 =============
 
 [![Dependency Status](https://www.versioneye.com/clojure/mvxcvi:multihash/badge.svg)](https://www.versioneye.com/clojure/mvxcvi:multihash)
-[![CircleCI](https://circleci.com/gh/greglook/clj-multihash.svg?style=shield&circle-token=f372615a37c2dfd05b10d990a5b3a1ed684c29e0)](https://circleci.com/gh/greglook/clj-multihash)
-[![Coverage Status](https://coveralls.io/repos/greglook/clj-multihash/badge.svg?branch=develop)](https://coveralls.io/r/greglook/clj-multihash?branch=develop)
-[![API codox](https://img.shields.io/badge/doc-API-blue.svg)](https://greglook.github.io/clj-multihash/api/multihash.core.html)
-[![marginalia docs](https://img.shields.io/badge/doc-marginalia-blue.png)](https://greglook.github.io/clj-multihash/marginalia/uberdoc.html)
+[![Circle CI](https://img.shields.io/circleci/project/github/multiformats/clj-multihash.svg?style=flat-square)](https://circleci.com/gh/multiformats/clj-multihash)
+[![codecov.io](https://img.shields.io/codecov/c/github/multiformats/clj-multihash.svg?style=flat-square&branch=develop)](https://codecov.io/github/multiformats/clj-multihash?branch=develop)
+[![API codox](https://img.shields.io/badge/doc-API-blue.svg)](https://multiformats.github.io/clj-multihash/api/multihash.core.html)
+[![marginalia docs](https://img.shields.io/badge/doc-marginalia-blue.png)](https://multiformats.github.io/clj-multihash/marginalia/uberdoc.html)
 [![Join the chat at https://gitter.im/greglook/clj-multihash](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/greglook/clj-multihash)
-[![](https://img.shields.io/badge/freenode-%23ipfs-blue.svg?style=flat-square)](http://webchat.freenode.net/?channels=%23ipfs)
+[![](https://img.shields.io/badge/freenode-%23ipfs-blue.svg?style=flat-square)](https://webchat.freenode.net/?channels=%23ipfs)
+[![](https://img.shields.io/badge/readme%20style-standard-brightgreen.svg?style=flat-square)](https://github.com/RichardLitt/standard-readme)
+[![](https://img.shields.io/badge/project-multiformats-blue.svg?style=flat-square)](https://github.com/multiformats/multiformats)
 
 > Clojure implementation of the Multihash spec
 
@@ -29,7 +31,7 @@ extensible, efficient binary representation for cryptographic hashes.
 Library releases are published on Clojars. To use the latest version with
 Leiningen, add the following dependency to your project definition:
 
-[![Clojars Project](http://clojars.org/mvxcvi/multihash/latest-version.svg)](http://clojars.org/mvxcvi/multihash)
+[![Clojars Project](https://clojars.org/mvxcvi/multihash/latest-version.svg)](https://clojars.org/mvxcvi/multihash)
 
 ## Usage
 
@@ -115,7 +117,7 @@ Contributions welcome. Please check out [the issues](https://github.com/multifor
 
 Check out our [contributing document](https://github.com/multiformats/multiformats/blob/master/contributing.md) for more information on how we work, and about contributing in general. Please be aware that all interactions related to multiformats are subject to the IPFS [Code of Conduct](https://github.com/ipfs/community/blob/master/code-of-conduct.md).
 
-Small note: If editing the Readme, please conform to the [standard-readme](https://github.com/RichardLitt/standard-readme) specification.
+Small note: If editing the README, please conform to the [standard-readme](https://github.com/RichardLitt/standard-readme) specification.
 
 ## License
 
