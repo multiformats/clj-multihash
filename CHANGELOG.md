@@ -9,6 +9,13 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ...
 
+## [2.0.2] - 2017-11-04
+
+### Changed
+- Update various plugins and dependencies.
+- Upgrade to CircleCI 2.0.
+- Publish coverage to codecov.
+
 ## [2.0.1] - 2016-07-26
 
 ### Changed
@@ -79,7 +86,8 @@ significantly between languages.
 
 Initial project release.
 
-[Unreleased]: https://github.com/greglook/clj-multihash/compare/2.0.1...HEAD
+[Unreleased]: https://github.com/greglook/clj-multihash/compare/2.0.2...HEAD
+[2.0.2]: https://github.com/greglook/clj-multihash/compare/2.0.1...2.0.2
 [2.0.1]: https://github.com/greglook/clj-multihash/compare/2.0.0...2.0.1
 [2.0.0]: https://github.com/greglook/clj-multihash/compare/1.1.0...2.0.0
 [1.1.0]: https://github.com/greglook/clj-multihash/compare/1.0.0...1.1.0
