@@ -1,4 +1,4 @@
-(defproject mvxcvi/multihash "2.0.1"
+(defproject mvxcvi/multihash "2.0.2"
   :description "Native Clojure implementation of the multihash standard."
   :url "https://github.com/greglook/clj-multihash"
   :license {:name "Public Domain"
@@ -13,11 +13,11 @@
    "coverage" ["with-profile" "+test,+coverage" "cloverage"]}
 
   :plugins
-  [[lein-cljsbuild "1.1.2"]
-   [lein-doo "0.1.6" :exclusions [org.clojure/clojurescript]]]
+  [[lein-cljsbuild "1.1.7"]
+   [lein-doo "0.1.8" :exclusions [org.clojure/clojurescript]]]
 
   :dependencies
-  [[mvxcvi/alphabase "0.2.1"]]
+  [[mvxcvi/alphabase "1.0.0"]]
 
   :cljsbuild
   {:builds {:test {:source-paths ["src" "test"]
@@ -29,8 +29,7 @@
   :codox
   {:metadata {:doc/format :markdown}
    :source-uri "https://github.com/greglook/clj-multihash/blob/master/{filepath}#L{line}"
-   :doc-paths ["doc/extra"]
-   :output-path "doc/api"}
+   :output-path "target/doc/api"}
 
   :whidbey
   {:tag-types {'multihash.core.Multihash {'data/hash 'multihash.core/base58}}}
@@ -38,8 +37,8 @@
   :profiles
   {:dev
    {:dependencies [[org.clojure/clojure "1.8.0"]
-                   [org.clojure/clojurescript "1.9.93"]]}
+                   [org.clojure/clojurescript "1.9.946"]]}
 
    :coverage
-   {:plugins [[rfkm/lein-cloverage "1.0.8"]]
-    :dependencies [[org.clojure/tools.reader "1.0.0-beta1"]]}})
+   {:plugins [[lein-cloverage "1.0.10"]]
+    :dependencies [[org.clojure/tools.reader "1.1.0"]]}})

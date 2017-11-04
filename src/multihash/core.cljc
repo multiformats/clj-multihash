@@ -142,7 +142,12 @@
                (str "Argument " (pr-str algorithm) " does not "
                     "represent a valid hash algorithm.")
                {:algorithm algorithm})))
-    (let [hex-digest (if (string? digest) digest (hex/encode digest))]
+    (let [hex-digest (if (string? digest) digest (hex/encode digest))
+          byte-len (/ (count hex-digest) 2)]
+      (when (< 127 byte-len)
+        (throw (ex-info (str "Digest length must be less than 128 bytes: "
+                             byte-len)
+                        {:length byte-len})))
       (when-let [err (hex/validate hex-digest)]
         (throw (ex-info err {:hex-digest hex-digest})))
       (->Multihash (:code algo) hex-digest nil))))
