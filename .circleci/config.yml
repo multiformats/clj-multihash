@@ -15,14 +15,14 @@ jobs:
             - clj-multihash-{{ checksum "project.clj" }}
             - clj-multihash-
       - run: lein deps
-      - save_cache:
-          key: clj-multihash-{{ checksum "project.clj" }}
-          paths:
-            - ~/.m2
       - run: lein check
       - run: lein test
       - run: lein cljs-test
       - run: lein coverage --codecov
+      - save_cache:
+          key: clj-multihash-{{ checksum "project.clj" }}
+          paths:
+            - ~/.m2
       - store_artifacts:
           path: target/coverage
           destination: coverage
