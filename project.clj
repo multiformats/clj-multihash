@@ -41,4 +41,4 @@
 
    :coverage
    {:plugins [[lein-cloverage "1.0.10"]]
-    :dependencies [#_[org.clojure/tools.reader "1.0.0-beta1"]]}})
+    :dependencies [[org.clojure/tools.reader "1.1.0"]]}})
