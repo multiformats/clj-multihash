@@ -7,7 +7,9 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
-...
+### Added
+- Multihash objects implement the Java `Serializable` interface so they work
+  better with Apache Spark.
 
 ## [2.0.2] - 2017-11-04
 

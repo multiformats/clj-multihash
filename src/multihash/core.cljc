@@ -69,6 +69,7 @@
     [this]
     (str "hash:" (name (:name (get-algorithm code))) \: hex-digest))
 
+  #?(:clj java.io.Serializable)
 
   #?(:cljs IEquiv)
 
