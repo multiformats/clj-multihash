@@ -1,6 +1,6 @@
 (defproject mvxcvi/multihash "2.1.0-SNAPSHOT"
   :description "Native Clojure implementation of the multihash standard."
-  :url "https://github.com/greglook/clj-multihash"
+  :url "https://github.com/multiformats/clj-multihash"
   :license {:name "Public Domain"
             :url "http://unlicense.org/"}
 
@@ -28,7 +28,7 @@
 
   :codox
   {:metadata {:doc/format :markdown}
-   :source-uri "https://github.com/greglook/clj-multihash/blob/master/{filepath}#L{line}"
+   :source-uri "https://github.com/multiformats/clj-multihash/blob/master/{filepath}#L{line}"
    :output-path "target/doc/api"}
 
   :whidbey
