@@ -7,6 +7,10 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+...
+
+## [2.0.3] - 2018-01-22
+
 ### Added
 - Multihash objects implement the Java `Serializable` interface so they work
   better with Apache Spark.
@@ -88,7 +92,8 @@ significantly between languages.
 
 Initial project release.
 
-[Unreleased]: https://github.com/greglook/clj-multihash/compare/2.0.2...HEAD
+[Unreleased]: https://github.com/greglook/clj-multihash/compare/2.0.3...HEAD
+[2.0.3]: https://github.com/greglook/clj-multihash/compare/2.0.2...2.0.3
 [2.0.2]: https://github.com/greglook/clj-multihash/compare/2.0.1...2.0.2
 [2.0.1]: https://github.com/greglook/clj-multihash/compare/2.0.0...2.0.1
 [2.0.0]: https://github.com/greglook/clj-multihash/compare/1.1.0...2.0.0
