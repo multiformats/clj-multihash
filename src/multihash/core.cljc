@@ -254,7 +254,7 @@
 
 
   #?(:clj java.lang.String
-     :cljs js/String)
+     :cljs string)
 
   (decode
     [source]
