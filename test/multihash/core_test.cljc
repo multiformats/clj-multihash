@@ -8,7 +8,8 @@
   #?(:clj (:import
             clojure.lang.ExceptionInfo
             java.io.ByteArrayInputStream
-            java.nio.ByteBuffer)))
+            java.nio.ByteBuffer
+            (net.mpare.varint VarInt))))
 
 
 (deftest app-specific-codes
@@ -30,6 +31,7 @@
     (let [algorithm (multihash/get-algorithm code)]
       (is (= code (:code algorithm)))
       (is (keyword? (:name algorithm)))))
+  (is (< 0 (count multihash/algorithm-codes)))
   (doseq [[algorithm code] multihash/algorithm-codes]
     (let [by-name (multihash/get-algorithm algorithm)
           by-code (multihash/get-algorithm code)]
@@ -54,9 +56,6 @@
   (is (thrown? ExceptionInfo
                (multihash/create :sha1 "018zk80q"))
       "Malformed digest should be rejected")
-  (is (thrown? ExceptionInfo
-               (multihash/create :sha1 (bytes/byte-array 128)))
-      "Digest length should be limited to 127")
   (is (thrown? ExceptionInfo
                (multihash/create :sha1 "012"))
       "Odd digest length should be rejected"))
@@ -102,6 +101,9 @@
    "12202c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae"
    [0x12 :sha2-256 32 "2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae"]
 
+   "128001000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f"
+   [0x12 :sha2-256 128 "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f"]
+
    "12042c26b46b"
    [0x12 :sha2-256 4 "2c26b46b"]
 
@@ -129,9 +131,10 @@
       ([code length]
        (stream-fixture code length length))
       ([code length actual]
-       (let [buffer (bytes/byte-array actual)]
-         (bytes/set-byte buffer 0 code)
-         (bytes/set-byte buffer 1 length)
+       (let [code-varint-size   (VarInt/varIntSize code)
+             buffer (bytes/byte-array actual)]
+         (VarInt/putVarInt code buffer 0)
+         (VarInt/putVarInt length buffer code-varint-size)
          (ByteArrayInputStream. buffer)))))
 
 

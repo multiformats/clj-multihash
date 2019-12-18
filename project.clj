@@ -17,7 +17,8 @@
    [lein-doo "0.1.8" :exclusions [org.clojure/clojurescript]]]
 
   :dependencies
-  [[mvxcvi/alphabase "1.0.0"]]
+  [[mvxcvi/alphabase "1.0.0"]
+   [multiformats/clj-varint "0.1.1"]]
 
   :cljsbuild
   {:builds {:test {:source-paths ["src" "test"]

@@ -6,7 +6,9 @@
     [alphabase.hex :as hex])
   #?(:clj (:import
             (clojure.lang ILookup IMeta IObj)
-            java.io.InputStream)))
+            java.io.InputStream
+            (java.nio ByteBuffer)
+            (net.mpare.varint VarInt))))
 
 
 ;; ## Hash Function Algorithms
@@ -143,12 +145,7 @@
                (str "Argument " (pr-str algorithm) " does not "
                     "represent a valid hash algorithm.")
                {:algorithm algorithm})))
-    (let [hex-digest (if (string? digest) digest (hex/encode digest))
-          byte-len (/ (count hex-digest) 2)]
-      (when (< 127 byte-len)
-        (throw (ex-info (str "Digest length must be less than 128 bytes: "
-                             byte-len)
-                        {:length byte-len})))
+    (let [hex-digest (if (string? digest) digest (hex/encode digest))]
       (when-let [err (hex/validate hex-digest)]
         (throw (ex-info err {:hex-digest hex-digest})))
       (->Multihash (:code algo) hex-digest nil))))
@@ -161,11 +158,14 @@
   "Encodes a multihash into a binary representation."
   ^bytes
   [mhash]
-  (let [length (:length mhash)
-        encoded (bytes/byte-array (+ length 2))]
-    (bytes/set-byte encoded 0 (:code mhash))
-    (bytes/set-byte encoded 1 length)
-    (bytes/copy (:digest mhash) 0 encoded 2 length)
+  (let [code               (:code mhash)
+        length             (:length mhash)
+        code-varint-size   (VarInt/varIntSize code)
+        length-varint-size (VarInt/varIntSize length)
+        encoded            (bytes/byte-array (+ length code-varint-size length-varint-size))]
+    (VarInt/putVarInt code encoded 0)
+    (VarInt/putVarInt length encoded code-varint-size)
+    (bytes/copy (:digest mhash) 0 encoded (+ code-varint-size length-varint-size) length)
     encoded))
 
 
@@ -196,9 +196,12 @@
                (str "Cannot read multihash from byte array: " encoded-size
                     " is less than the minimum of " min-size)
                {:type :multihash/bad-input}))))
-  (let [code (bytes/get-byte encoded 0)
-        length (bytes/get-byte encoded 1)
-        payload (- (alength encoded) 2)]
+  (let [encoded-buffer     (ByteBuffer/wrap encoded)
+        code               (VarInt/getVarInt encoded-buffer)
+        length             (VarInt/getVarInt encoded-buffer)
+        code-varint-size   (VarInt/varIntSize code)
+        length-varint-size (VarInt/varIntSize length)
+        payload            (- (alength encoded) code-varint-size length-varint-size)]
     (when-not (pos? length)
       (throw (ex-info
                (str "Encoded length " length " is invalid")
@@ -209,7 +212,7 @@
                     "remaining payload of " payload " bytes")
                {:type :multihash/bad-input})))
     (let [digest (bytes/byte-array length)]
-      (bytes/copy encoded 2 digest 0 length)
+      (bytes/copy encoded (+ code-varint-size length-varint-size) digest 0 length)
       (create code digest))))
 
 
@@ -220,7 +223,7 @@
      invalid or there is an error reading from the stream."
      ^bytes
      [^InputStream input]
-     (let [length (.read input)]
+     (let [length (VarInt/getVarInt input)]
        (when-not (pos? length)
          (throw (ex-info
                   (format "Byte %02x is not a valid digest length." length)
@@ -269,6 +272,6 @@
 
        (decode
          [source]
-         (let [code (.read source)
+         (let [code (VarInt/getVarInt source)
                digest (read-stream-digest source)]
            (create code digest)))]))
