@@ -145,11 +145,11 @@
           "Stream without enough data throws exception..")))
 
 
-#_(deftest example-coding
+(deftest example-coding
   (testing "Encoding is reflexive"
     (let [mhash (multihash/create 0x02 "0beec7b8")]
       (is (= mhash (multihash/decode (multihash/encode mhash))))))
-  (doseq [[hex [code algorithm length digest]] examples]
+ #_(doseq [[hex [code algorithm length digest]] examples]
     (let [mhash (multihash/create algorithm digest)]
       (is (= code (:code mhash)))
       (is (= algorithm (:algorithm mhash)))

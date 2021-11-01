@@ -84,17 +84,23 @@
         (throw (ex-info err {:hex-digest hex-digest})))
       (->Multihash (:code algo) hex-digest))))
 
+(defn length [mhash]
+  (/ (count (:hex-digest mhash)) 2))
+
+(defn digest [mhash]
+  (hex/decode (:hex-digest mhash)))
+
 ;; ## Encoding and Decoding
 
 (defn encode
   "Encodes a multihash into a binary representation."
   ^bytes
   [mhash]
-  (let [length (:length mhash)
-        encoded (bytes/byte-array (+ length 2))]
+  (let [len (length mhash)
+        encoded (bytes/byte-array (+ len 2))]
     (bytes/set-byte encoded 0 (:code mhash))
-    (bytes/set-byte encoded 1 length)
-    (bytes/copy (:digest mhash) 0 encoded 2 length)
+    (bytes/set-byte encoded 1 len)
+    (bytes/copy (digest mhash) 0 encoded 2 len)
     encoded))
 
 
