@@ -74,7 +74,7 @@
     #_(is (= [a b c] (sort [c b a])) "Multihashes sort in code/digest order")))
 
 
-#_(deftest multihash-rendering
+(deftest multihash-rendering
   (is (= "hash:sha1:0beec7b5ea3f0fdbc95d0dd47f3c5bc275da8a33"
          (str (multihash/create :sha1 "0beec7b5ea3f0fdbc95d0dd47f3c5bc275da8a33"))))
   (is (= "hash:sha2-256:2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae"

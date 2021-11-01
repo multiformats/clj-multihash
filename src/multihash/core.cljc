@@ -60,8 +60,11 @@
 ;; - `hex-digest` is a string holding the hex-encoded algorithm output.
 ;;
 ;; Multihash values also support metadata.
-(defrecord Multihash
-    [^long code ^String hex-digest])
+(defrecord Multihash [^long code ^String hex-digest]
+  Object
+  (toString
+    [_]
+    (str "hash:" (name (:name (get-algorithm code))) \: hex-digest)))
 
 (defn create
   "Constructs a new Multihash identifier. Accepts either a numeric algorithm
