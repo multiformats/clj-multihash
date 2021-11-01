@@ -19,10 +19,10 @@
             mh3 (hash-fn (ByteBuffer/wrap (.getBytes content)))
             mh4 (hash-fn (ByteArrayInputStream. (.getBytes content)))]
         (is (= algorithm
-               (:algorithm mh1)
-               (:algorithm mh2)
-               (:algorithm mh3)
-               (:algorithm mh4))
+               (multihash/algorithm mh1)
+               (multihash/algorithm mh2)
+               (multihash/algorithm mh3)
+               (multihash/algorithm mh4))
             "Constructed multihash algorithms match")
         (is (= (:hex-digest mh1)
                (:hex-digest mh2)

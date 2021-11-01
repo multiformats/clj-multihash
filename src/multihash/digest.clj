@@ -2,7 +2,7 @@
   "Digest functions for creating new multihash constructors."
   (:refer-clojure :exclude [test])
   (:require
-    [multihash.core :as multihash])
+    [multihash.core :as multihash :refer [algorithm]])
   (:import
     (java.io
       InputStream
@@ -70,9 +70,9 @@
   Throws an exception if the multihash specifies an unsupported algorithm."
   [mhash content]
   (when (and mhash content)
-    (if-let [hash-fn (get functions (:algorithm mhash))]
+    (if-let [hash-fn (get functions (algorithm mhash))]
       (= mhash (hash-fn content))
       (throw (ex-info
                (format "No supported hashing function for algorithm %s to validate %s"
-                       (:algorithm mhash) mhash)
-               {:algorithm (:algorithm mhash)})))))
+                       (algorithm mhash) mhash)
+               {:algorithm (algorithm mhash)})))))
