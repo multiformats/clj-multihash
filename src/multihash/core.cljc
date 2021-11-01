@@ -60,77 +60,8 @@
 ;; - `hex-digest` is a string holding the hex-encoded algorithm output.
 ;;
 ;; Multihash values also support metadata.
-(deftype Multihash
-  [^long code ^String hex-digest _meta]
-
-  Object
-
-  (toString
-    [this]
-    (str "hash:" (name (:name (get-algorithm code))) \: hex-digest))
-
-  #?(:clj java.io.Serializable)
-
-  #?(:cljs IEquiv)
-
-  (#?(:clj equals, :cljs -equiv)
-    [this that]
-    (cond
-      (identical? this that) true
-      (instance? Multihash that)
-        (and (= code (:code that))
-             (= hex-digest (:hex-digest that)))
-      :else false))
-
-
-  #?(:cljs IHash)
-
-  (#?(:clj hashCode, :cljs -hash)
-    [this]
-    (hash-combine code hex-digest))
-
-
-  #?(:clj Comparable, :cljs IComparable)
-
-  (#?(:clj compareTo, :cljs -compare)
-    [this that]
-    (cond
-      (= this that) 0
-      (< code (:code that)) -1
-      (> code (:code that))  1
-      :else (compare hex-digest (:hex-digest that))))
-
-
-  ILookup
-
-  (#?(:clj valAt, :cljs -lookup)
-    [this k]
-    (#?(:clj .valAt, :cljs -lookup) this k nil))
-
-  (#?(:clj valAt, :cljs -lookup)
-    [this k not-found]
-    (case k
-      :code code
-      :algorithm (:name (get-algorithm code))
-      :length (/ (count hex-digest) 2)
-      :digest (hex/decode hex-digest)
-      :hex-digest hex-digest
-      not-found))
-
-
-  IMeta
-
-  (#?(:clj meta, :cljs -meta)
-    [this]
-    _meta)
-
-
-  #?(:clj IObj, :cljs IWithMeta)
-
-  (#?(:clj withMeta, :cljs -with-meta)
-    [this meta-map]
-    (Multihash. code hex-digest meta-map)))
-
+(defrecord Multihash
+    [^long code ^String hex-digest])
 
 (defn create
   "Constructs a new Multihash identifier. Accepts either a numeric algorithm
@@ -151,9 +82,7 @@
                         {:length byte-len})))
       (when-let [err (hex/validate hex-digest)]
         (throw (ex-info err {:hex-digest hex-digest})))
-      (->Multihash (:code algo) hex-digest nil))))
-
-
+      (->Multihash (:code algo) hex-digest))))
 
 ;; ## Encoding and Decoding
 
