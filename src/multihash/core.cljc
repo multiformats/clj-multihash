@@ -90,6 +90,9 @@
 (defn digest [mhash]
   (hex/decode (:hex-digest mhash)))
 
+(defn algorithm [mhash]
+  (:name (get-algorithm (:code mhash))))
+
 ;; ## Encoding and Decoding
 
 (defn encode

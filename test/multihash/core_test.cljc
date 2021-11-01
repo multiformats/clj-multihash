@@ -149,11 +149,11 @@
   (testing "Encoding is reflexive"
     (let [mhash (multihash/create 0x02 "0beec7b8")]
       (is (= mhash (multihash/decode (multihash/encode mhash))))))
- #_(doseq [[hex [code algorithm length digest]] examples]
+ (doseq [[hex [code algorithm length digest]] examples]
     (let [mhash (multihash/create algorithm digest)]
       (is (= code (:code mhash)))
-      (is (= algorithm (:algorithm mhash)))
-      (is (= length (:length mhash)))
+      (is (= algorithm (multihash/algorithm mhash)))
+      (is (= length (multihash/length mhash)))
       (is (= digest (:hex-digest mhash)))
       (is (= hex (multihash/hex mhash))
           "Encoded multihashes match expected hex")
