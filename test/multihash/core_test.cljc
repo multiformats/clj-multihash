@@ -71,8 +71,8 @@
     (is (= c c') "Values with same code and digest are equal")
     (is (integer? (hash b)) "Hash code returns an integer")
     (is (= (hash c) (hash c')) "Equivalent objects return same hashcode")
-    #_(is (= [a b c] (sort [c b a])) "Multihashes sort in code/digest order")))
-
+    #?(:bb nil
+       :default (is (= [a b c] (sort [c b a])) "Multihashes sort in code/digest order"))))
 
 (deftest multihash-rendering
   (is (= "hash:sha1:0beec7b5ea3f0fdbc95d0dd47f3c5bc275da8a33"
