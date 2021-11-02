@@ -1,0 +1,5 @@
+{:paths ["src" "test"]
+ :deps {mvxcvi/alphabase {:mvn/version "2.1.0"}}
+ :tasks
+ {test {:requires ([multihash.core-test] [multihash.digest-test])
+        :task (clojure.test/run-tests 'multihash.core-test 'multihash.digest-test)}}}

@@ -37,6 +37,7 @@
   :profiles
   {:dev
    {:dependencies [[org.clojure/clojure "1.10.0"]
+                   [javax.xml.bind/jaxb-api "2.3.1"] ;; needed to make multihash work on JDK11+
                    [org.clojure/clojurescript "1.9.946"]]}
 
    :coverage
