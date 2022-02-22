@@ -17,7 +17,7 @@
    [lein-doo "0.1.8" :exclusions [org.clojure/clojurescript]]]
 
   :dependencies
-  [[mvxcvi/alphabase "1.0.0"]]
+  [[mvxcvi/alphabase "2.1.1"]]
 
   :cljsbuild
   {:builds {:test {:source-paths ["src" "test"]
@@ -36,8 +36,8 @@
 
   :profiles
   {:dev
-   {:dependencies [[org.clojure/clojure "1.8.0"]
-                   [org.clojure/clojurescript "1.9.946"]]}
+   {:dependencies [[org.clojure/clojure "1.10.3"]
+                   [org.clojure/clojurescript "1.10.844"]]}
 
    :coverage
    {:plugins [[lein-cloverage "1.0.10"]]
