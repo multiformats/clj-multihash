@@ -1,5 +1,7 @@
+**This project is no longer maintained and has been archived.**
+
 clj-multihash
-=============
+=============1
 
 [![Circle CI](https://img.shields.io/circleci/project/github/multiformats/clj-multihash.svg?style=flat-square)](https://circleci.com/gh/multiformats/clj-multihash)
 [![codecov.io](https://img.shields.io/codecov/c/github/multiformats/clj-multihash.svg?style=flat-square&branch=develop)](https://codecov.io/github/multiformats/clj-multihash?branch=develop)
